@@ -21,7 +21,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §2 — Engine: primitives (RNG, heap, clock, ids)
 - [x] §3 — Engine: domain model (state, transitions, treatment, arrivals)
 - [x] §4 — Engine: domain events & emitter
-- [ ] §5 — Engine: DES scheduler & Simulation orchestration
+- [x] §5 — Engine: DES scheduler & Simulation orchestration
 - [ ] §6 — Engine: handlers (the lifecycle glue)
 - [ ] §7 — Engine: acceptance scenarios & determinism
 - [ ] §8 — Contract: schema/IDL, envelope & translator
@@ -266,7 +266,8 @@ engine's own vocabulary; the contract and UI subscribe to them.
 
 ### ❓ Outstanding questions
 
-- `runUntil` safety max-iterations bound value? [default: configurable, e.g. 1e6]
+- `runUntil` safety max-iterations bound: configurable via `SimulationDeps`,
+  default 1e6. ✅
 
 ### Description
 
@@ -289,12 +290,18 @@ state + rng + emitter and exposes the public advancement API (`step`, `runUntil`
 
 ### Tasks
 
-- [ ] `sim/scheduler.ts`: `ScheduledEvent`, comparator, schedule/pop over the heap.
-- [ ] `state/worldState.ts`: `WorldState` aggregate + `WorldStateReadModel` projection.
-- [ ] `sim/simulation.ts`: orchestrator + public API + `createSimulation`.
-- [ ] `index.ts`: public barrel (types + `createSimulation` + enums).
-- [ ] Unit tests: step/runUntil/run semantics, FIFO tiebreak, monotonic guard,
-      max-iteration guard, read-model immutability.
+- [x] `sim/scheduler.ts`: `ScheduledEvent` union + input type, `time → seq`
+      comparator over `tinyqueue`, schedule/peek/pop/size.
+- [x] `state/worldState.ts`: `WorldState` aggregate + counters + immutable
+      `WorldStateReadModel` projection.
+- [x] `sim/simulation.ts`: orchestrator + public `Simulation` API + `createSimulation`.
+      Lifecycle logic is injected via `HandlerRegistry` + `bootstrap` (the ward
+      handlers land in §6); `start()` emits `GameStarted` (idempotent).
+      `createSimulationFromSnapshot` deferred to §9.
+- [x] `index.ts`: public barrel (construction, types, enums, model, rng, config).
+- [x] Unit tests: step/runUntil/run semantics, FIFO tiebreak, simTime-at-bound,
+      no-backwards, max-iteration guard, no-handler throw, read-model immutability,
+      subscribe/unsubscribe. (103 tests total; 100%, lint/typecheck clean.)
 
 ---
 
