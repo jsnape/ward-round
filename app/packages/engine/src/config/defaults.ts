@@ -15,6 +15,10 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
         medium: 3 * MS_PER_DAY,
         long: 7 * MS_PER_DAY,
     },
+    recovery: {
+        complicationMs: 2 * MS_PER_DAY,
+        poorMs: 5 * MS_PER_DAY,
+    },
     outcomeWeights: { good: 0.7, complication: 0.2, poor: 0.1 },
     arrivals: {
         meanInterArrivalMs: 1 * MS_PER_DAY,
@@ -25,5 +29,6 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
         roundIntervalMs: MS_PER_DAY,
         firstRoundAt: 8 * 60 * 60 * 1000, // 08:00 on day 0
         maxWaitMs: 2 * MS_PER_DAY,
+        forecastHorizonMs: 1 * MS_PER_DAY,
     },
 };

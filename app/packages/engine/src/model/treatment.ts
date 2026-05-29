@@ -7,6 +7,7 @@ import { type Rng, weightedPick } from "../rng/rng.js";
 import type {
     DurationConfig,
     OutcomeWeights,
+    RecoveryConfig,
     StaffingConfig,
 } from "../config/types.js";
 import {
@@ -66,4 +67,22 @@ export function treatmentDuration(
 export function rollOutcome(weights: OutcomeWeights, rng: Rng): OutcomeTier {
     const w = OUTCOME_TIERS.map((tier) => weights[tier]);
     return OUTCOME_TIERS[weightedPick(w, rng)]!;
+}
+
+/**
+ * Extra time a patient occupies a bed after treatment, by outcome. `good` means
+ * well immediately (0); a patient who is not well cannot be discharged yet.
+ */
+export function recoveryTime(
+    outcome: OutcomeTier,
+    recovery: RecoveryConfig,
+): number {
+    switch (outcome) {
+        case "good":
+            return 0;
+        case "complication":
+            return recovery.complicationMs;
+        case "poor":
+            return recovery.poorMs;
+    }
 }

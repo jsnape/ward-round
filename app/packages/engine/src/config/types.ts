@@ -10,6 +10,16 @@ export type OutcomeWeights = Record<OutcomeTier, number>;
 /** Base treatment durations (integer ms of simTime) per duration class. */
 export type DurationConfig = Record<DurationClass, number>;
 
+/**
+ * Extra recovery time (ms) a patient occupies a bed *after* treatment completes,
+ * by outcome. A `good` outcome means well immediately (0); `complication` and
+ * `poor` patients are not yet well and cannot go home until recovered.
+ */
+export interface RecoveryConfig {
+    complicationMs: number;
+    poorMs: number;
+}
+
 /** Staffing floors and the soft throughput bonus per extra staff member. */
 export interface StaffingConfig {
     /** Minimum doctors for treatment to progress at all (hard floor). */
@@ -45,6 +55,11 @@ export interface BedManagerConfig {
     roundIntervalMs: number;
     firstRoundAt: number;
     maxWaitMs: number;
+    /**
+     * How far ahead the manager optimistically counts beds expected to free
+     * (based on on-time recovery). Larger = more optimistic = fewer cancellations.
+     */
+    forecastHorizonMs: number;
 }
 
 /** The complete, deterministic configuration for a simulation run. */
@@ -53,6 +68,7 @@ export interface EngineConfig {
     resources: ResourceConfig;
     staffing: StaffingConfig;
     baseDurationMs: DurationConfig;
+    recovery: RecoveryConfig;
     outcomeWeights: OutcomeWeights;
     arrivals: ArrivalConfig;
     bedManager: BedManagerConfig;

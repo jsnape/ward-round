@@ -51,6 +51,9 @@ function admitOne(patient: Patient, ctx: SimContext): void {
         ctx.config.staffing,
         ctx.config.baseDurationMs,
     );
+    // Optimistic estimate (assumes an on-time, complication-free recovery) — the
+    // bed manager forecasts free beds from this.
+    patient.expectedDischargeAt = ctx.simTime + duration;
     ctx.emit({
         kind: "TreatmentStarted",
         simTime: ctx.simTime,

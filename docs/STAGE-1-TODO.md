@@ -387,6 +387,13 @@ validates against, plus the determinism regression net. These are the engine's
 > `schedule`/`admit` event kinds were removed; `bedManagerRound` added; a
 > `bedManager` config block added; `WaitingList → Cancelled` is now a legal
 > transition.
+>
+> **Further refined:** outcomes now drive **recovery** — `good` = well at once;
+> `complication`/`poor` keep the patient in-bed for a recovery period
+> (`config.recovery`) before discharge ("if not well, they cannot go home"). The
+> bed manager is **optimistic**: it forecasts beds expected to free within
+> `bedManager.forecastHorizonMs` (from each patient's optimistic
+> `expectedDischargeAt`) and cancels only the overflow it cannot place.
 
 ---
 

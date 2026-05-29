@@ -367,12 +367,26 @@ The list grows when arrivals outpace bed turnover.
 
 The `no_bed_available` cancellation (spec §4/§11.4) is **not instant**. It is a
 **daily bed-manager round** (`handlers/bedManagerHandler.ts`, the `bedManagerRound`
-event): each round cancels any waiting patient whose wait has exceeded
-`maxWaitMs` — their elective slot lapsed with no bed available — then reschedules
-the next round. This models a bed manager making batched decisions in the morning,
-not a per-patient instant reject. `WaitingList → Cancelled` is therefore a legal
-transition, and the `bedManager` config block (`roundIntervalMs`, `firstRoundAt`,
-`maxWaitMs`) tunes it.
+event): each round considers waiting patients whose wait has exceeded `maxWaitMs`,
+then reschedules the next round. This models a bed manager making batched
+decisions in the morning, not a per-patient instant reject. `WaitingList →
+Cancelled` is therefore a legal transition, and the `bedManager` config block
+(`roundIntervalMs`, `firstRoundAt`, `maxWaitMs`, `forecastHorizonMs`) tunes it.
+
+**The bed manager is optimistic.** It does not cancel every long-waiter — it
+counts beds it *expects* to free within `forecastHorizonMs` and only cancels the
+overflow that even that optimism cannot place. Expected frees come from each
+admitted patient's `expectedDischargeAt`, an *optimistic* estimate set at
+treatment start (`treatmentStartedAt + nominal treatment duration`, ignoring any
+complication). So the manager assumes best-case, on-time recoveries.
+
+**Outcomes drive recovery (not all treatments succeed immediately).** When
+treatment completes, the outcome is rolled: `good` means well immediately →
+ready for discharge; `complication`/`poor` mean the patient is *not yet well* and
+keeps occupying the bed for a `recovery` period (`config.recovery.complicationMs`
+/ `poorMs`) before a second completion readies them for discharge. This is why the
+bed manager's optimism matters — actual recoveries can run longer than the
+`expectedDischargeAt` it forecasts from.
 
 (The simulation's scheduled-event kinds are accordingly `arrival`,
 `treatmentComplete`, `discharge`, and `bedManagerRound`; admission itself is a

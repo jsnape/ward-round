@@ -149,9 +149,21 @@ describe("handleArrival", () => {
     });
 });
 
+const forceOutcome = (
+    tier: "good" | "complication" | "poor",
+): EngineConfig => ({
+    ...DEFAULT_ENGINE_CONFIG,
+    outcomeWeights: {
+        good: tier === "good" ? 1 : 0,
+        complication: tier === "complication" ? 1 : 0,
+        poor: tier === "poor" ? 1 : 0,
+    },
+});
+
 describe("handleTreatmentComplete", () => {
-    it("rolls an outcome, readies for discharge, and queues discharge", () => {
+    it("readies a well (good) patient for discharge immediately", () => {
         const { ctx, world, scheduler, emitted } = makeContext({
+            config: forceOutcome("good"),
             simTime: 500,
         });
         addPatient(world, "p-1", PatientState.InTreatment, {
@@ -165,8 +177,52 @@ describe("handleTreatmentComplete", () => {
 
         const patient = world.patients.get("p-1");
         expect(patient?.state).toBe(PatientState.ReadyForDischarge);
-        expect(patient?.outcome).toBeDefined();
+        expect(patient?.outcome).toBe("good");
         expect(emitted.map((e) => e.kind)).toEqual(["OutcomeRolled"]);
+        expect(drain(scheduler).map((e) => e.kind)).toEqual(["discharge"]);
+    });
+
+    it("keeps a not-well (complication) patient recovering in the bed", () => {
+        const { ctx, world, scheduler, emitted } = makeContext({
+            config: forceOutcome("complication"),
+            simTime: 500,
+        });
+        addPatient(world, "p-1", PatientState.InTreatment, {
+            admittedAt: 0,
+            treatmentStartedAt: 0,
+        });
+        handleTreatmentComplete(
+            { kind: "treatmentComplete", time: 500, seq: 0, patientId: "p-1" },
+            ctx,
+        );
+
+        const patient = world.patients.get("p-1");
+        expect(patient?.state).toBe(PatientState.InTreatment); // not well yet
+        expect(patient?.outcome).toBe("complication");
+        expect(emitted.map((e) => e.kind)).toEqual(["OutcomeRolled"]);
+        const next = drain(scheduler);
+        expect(next.map((e) => e.kind)).toEqual(["treatmentComplete"]);
+        expect(next[0]?.time).toBe(500 + 2 * MS_PER_DAY); // recovery extension
+    });
+
+    it("discharges a recovered patient on the second completion (no re-roll)", () => {
+        const { ctx, world, scheduler, emitted } = makeContext({
+            config: forceOutcome("complication"),
+            simTime: 900,
+        });
+        addPatient(world, "p-1", PatientState.InTreatment, {
+            admittedAt: 0,
+            outcome: "complication", // already rolled — this is the recovery completion
+        });
+        handleTreatmentComplete(
+            { kind: "treatmentComplete", time: 900, seq: 0, patientId: "p-1" },
+            ctx,
+        );
+
+        expect(world.patients.get("p-1")?.state).toBe(
+            PatientState.ReadyForDischarge,
+        );
+        expect(emitted).toEqual([]); // no second OutcomeRolled
         expect(drain(scheduler).map((e) => e.kind)).toEqual(["discharge"]);
     });
 
@@ -233,37 +289,84 @@ describe("handleDischarge", () => {
 });
 
 describe("handleBedManagerRound", () => {
-    it("cancels long-waiters, spares recent ones, and reschedules", () => {
+    const NOW = 3 * MS_PER_DAY;
+    const HORIZON_END = NOW + MS_PER_DAY; // forecastHorizonMs = 1 day
+
+    it("cancels only the overflow beyond free + expected-soon beds", () => {
         const { ctx, world, scheduler, emitted } = makeContext({
-            simTime: 3 * MS_PER_DAY,
+            simTime: NOW,
         });
-        // maxWaitMs = 2 days
-        addPatient(world, "p-old", PatientState.WaitingList, {
-            registeredAt: 0,
+        world.resources.beds.occupied = world.resources.beds.capacity; // full
+
+        // One bed expected to free within the horizon (counts toward capacity)…
+        addPatient(world, "p-soon", PatientState.InTreatment, {
+            expectedDischargeAt: NOW + MS_PER_DAY / 2,
         });
-        addPatient(world, "p-new", PatientState.WaitingList, {
-            registeredAt: 2.5 * MS_PER_DAY,
+        // …one beyond the horizon (does not count)…
+        addPatient(world, "p-late", PatientState.InTreatment, {
+            expectedDischargeAt: NOW + 5 * MS_PER_DAY,
         });
-        addPatient(world, "p-adm", PatientState.Admitted, { registeredAt: 0 });
+        // …one with no estimate (does not count)…
+        addPatient(world, "p-noeta", PatientState.Admitted);
+        // …and a non-bed patient (skipped entirely).
+        addPatient(world, "p-done", PatientState.Discharged);
+
+        // Three long-waiters (each waited 3 days >= maxWait 2 days), oldest first.
+        addPatient(world, "w1", PatientState.WaitingList, { registeredAt: 0 });
+        addPatient(world, "w2", PatientState.WaitingList, { registeredAt: 0 });
+        addPatient(world, "w3", PatientState.WaitingList, { registeredAt: 0 });
 
         handleBedManagerRound(
-            { kind: "bedManagerRound", time: 3 * MS_PER_DAY, seq: 0 },
+            { kind: "bedManagerRound", time: NOW, seq: 0 },
             ctx,
         );
 
-        expect(world.patients.get("p-old")?.state).toBe(PatientState.Cancelled);
-        expect(world.patients.get("p-new")?.state).toBe(
+        // capacity = 0 free + 1 expected-soon = 1 → keep oldest 1, cancel 2.
+        expect(world.patients.get("w1")?.state).toBe(PatientState.WaitingList);
+        expect(world.patients.get("w2")?.state).toBe(PatientState.Cancelled);
+        expect(world.patients.get("w3")?.state).toBe(PatientState.Cancelled);
+        expect(world.counters.cancelled).toBe(2);
+        expect(
+            emitted.every(
+                (e) =>
+                    e.kind === "AdmissionCancelled" &&
+                    e.reason === "no_bed_available",
+            ),
+        ).toBe(true);
+        expect(HORIZON_END).toBe(4 * MS_PER_DAY);
+
+        const next = drain(scheduler);
+        expect(next.map((e) => e.kind)).toEqual(["bedManagerRound"]);
+        expect(next[0]?.time).toBe(NOW + MS_PER_DAY);
+    });
+
+    it("optimism spares long-waiters when enough beds are expected to free", () => {
+        const { ctx, world, emitted } = makeContext({ simTime: NOW });
+        world.resources.beds.occupied = world.resources.beds.capacity; // full
+
+        // Three beds expected to free within the horizon.
+        for (const id of ["s1", "s2", "s3"]) {
+            addPatient(world, id, PatientState.InTreatment, {
+                expectedDischargeAt: NOW + MS_PER_DAY / 2,
+            });
+        }
+        // A recent waiter (under maxWait) is not a cancellation candidate.
+        addPatient(world, "recent", PatientState.WaitingList, {
+            registeredAt: 2.5 * MS_PER_DAY,
+        });
+        // One long-waiter, comfortably within expected capacity (3).
+        addPatient(world, "w1", PatientState.WaitingList, { registeredAt: 0 });
+
+        handleBedManagerRound(
+            { kind: "bedManagerRound", time: NOW, seq: 0 },
+            ctx,
+        );
+
+        expect(world.patients.get("w1")?.state).toBe(PatientState.WaitingList);
+        expect(world.patients.get("recent")?.state).toBe(
             PatientState.WaitingList,
         );
-        expect(world.patients.get("p-adm")?.state).toBe(PatientState.Admitted);
-        expect(world.counters.cancelled).toBe(1);
-        const cancelled = emitted.find((e) => e.kind === "AdmissionCancelled");
-        if (cancelled?.kind === "AdmissionCancelled") {
-            expect(cancelled.reason).toBe("no_bed_available");
-        }
-        const next = drain(scheduler);
-        expect(next).toHaveLength(1);
-        expect(next[0]?.kind).toBe("bedManagerRound");
-        expect(next[0]?.time).toBe(3 * MS_PER_DAY + MS_PER_DAY);
+        expect(world.counters.cancelled).toBe(0);
+        expect(emitted).toEqual([]);
     });
 });

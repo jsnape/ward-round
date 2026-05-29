@@ -47,6 +47,8 @@ export interface Patient {
     scheduledAt?: number;
     admittedAt?: number;
     treatmentStartedAt?: number;
+    /** Optimistic (on-time) discharge estimate, set at treatment start. */
+    expectedDischargeAt?: number;
     dischargedAt?: number;
     outcome?: OutcomeTier;
 }

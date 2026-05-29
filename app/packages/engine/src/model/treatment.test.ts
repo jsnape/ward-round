@@ -3,6 +3,7 @@ import type { Rng } from "../rng/rng.js";
 import type { DurationConfig, StaffingConfig } from "../config/types.js";
 import {
     isStaffed,
+    recoveryTime,
     rollOutcome,
     throughputMultiplier,
     treatmentDuration,
@@ -90,5 +91,21 @@ describe("rollOutcome", () => {
             "complication",
         );
         expect(rollOutcome(weights, new ScriptedRng([0.95]))).toBe("poor");
+    });
+});
+
+describe("recoveryTime", () => {
+    const recovery = { complicationMs: 200, poorMs: 500 };
+
+    it("is zero for a good outcome (well immediately)", () => {
+        expect(recoveryTime("good", recovery)).toBe(0);
+    });
+
+    it("extends a bed stay for a complication", () => {
+        expect(recoveryTime("complication", recovery)).toBe(200);
+    });
+
+    it("extends a bed stay further for a poor outcome", () => {
+        expect(recoveryTime("poor", recovery)).toBe(500);
     });
 });
