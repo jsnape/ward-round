@@ -8,6 +8,11 @@
 export const ENGINE_VERSION = "0.0.0";
 
 // Construction + orchestration
+export {
+    createWardSimulation,
+    wardHandlers,
+    wardBootstrap,
+} from "./handlers/ward.js";
 export { createSimulation } from "./sim/simulation.js";
 export type {
     Simulation,

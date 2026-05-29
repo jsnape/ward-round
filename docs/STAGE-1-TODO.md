@@ -22,7 +22,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §3 — Engine: domain model (state, transitions, treatment, arrivals)
 - [x] §4 — Engine: domain events & emitter
 - [x] §5 — Engine: DES scheduler & Simulation orchestration
-- [ ] §6 — Engine: handlers (the lifecycle glue)
+- [x] §6 — Engine: handlers (the lifecycle glue)
 - [ ] §7 — Engine: acceptance scenarios & determinism
 - [ ] §8 — Contract: schema/IDL, envelope & translator
 - [ ] §9 — Contract: sinks, save format & migration
@@ -309,8 +309,8 @@ state + rng + emitter and exposes the public advancement API (`step`, `runUntil`
 
 ### ❓ Outstanding questions
 
-- Confirm Stage 1 keeps the simplification: staffing floor gates **starting** new
-  treatments; in-flight treatments finish even if staff later drop. [default: yes]
+- Stage 1 simplification confirmed: staffing floor gates **starting** new
+  treatments; in-flight treatments always finish (never frozen). ✅
 
 ### Description
 
@@ -331,12 +331,17 @@ bed release). Each mutates `WorldState`, emits domain events, and is
 
 ### Tasks
 
-- [ ] `handlers/arrivalHandler.ts`
-- [ ] `handlers/scheduleHandler.ts`
-- [ ] `handlers/admitHandler.ts` (bed check + cancellation cause)
-- [ ] `handlers/treatmentHandler.ts` (staffing gate, timer, outcome roll)
-- [ ] `handlers/dischargeHandler.ts` (bed release, length-of-stay)
-- [ ] Per-handler unit tests with scripted Rng + spy emitter, incl. stale no-op.
+- [x] `handlers/arrivalHandler.ts` (register + perpetuate arrivals + queue schedule).
+- [x] `handlers/scheduleHandler.ts` (WaitingList → Scheduled, queue admit).
+- [x] `handlers/admitHandler.ts` (bed check + `no_bed_available` cancel; start
+      treatment if staffed, else stall).
+- [x] `handlers/treatmentHandler.ts` (outcome roll, → ReadyForDischarge, queue discharge).
+- [x] `handlers/dischargeHandler.ts` (release bed, length-of-stay, → Discharged).
+- [x] `handlers/ward.ts`: `wardHandlers` + `wardBootstrap` + `createWardSimulation`
+      (the production entry; exported from the barrel).
+- [x] Per-handler unit tests (happy, no-bed, understaffed-stall, stale missing +
+      wrong-state no-ops) + ward end-to-end + determinism smoke. (118 tests; 100%,
+      lint/typecheck clean.)
 
 ---
 

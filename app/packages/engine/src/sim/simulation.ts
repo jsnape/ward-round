@@ -28,6 +28,7 @@ import {
 export interface SimContext {
     readonly simTime: number;
     readonly world: WorldState;
+    readonly config: EngineConfig;
     readonly rng: { readonly arrivals: Rng; readonly outcomes: Rng };
     readonly ids: IdGenerator;
     /** Schedule a follow-on event. */
@@ -177,6 +178,7 @@ class SimulationImpl implements Simulation {
         return {
             simTime: this.clock.simTime,
             world: this.world,
+            config: this.config,
             rng: { arrivals: this.rngArrivals, outcomes: this.rngOutcomes },
             ids: this.ids,
             schedule: (event) => this.scheduler.schedule(event),
