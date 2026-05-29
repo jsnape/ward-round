@@ -19,7 +19,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §0 — Claude Code initialization (CLAUDE.md)
 - [x] §1 — Repo skeleton, tooling & coverage gate
 - [x] §2 — Engine: primitives (RNG, heap, clock, ids)
-- [ ] §3 — Engine: domain model (state, transitions, treatment, arrivals)
+- [x] §3 — Engine: domain model (state, transitions, treatment, arrivals)
 - [ ] §4 — Engine: domain events & emitter
 - [ ] §5 — Engine: DES scheduler & Simulation orchestration
 - [ ] §6 — Engine: handlers (the lifecycle glue)
@@ -183,16 +183,14 @@ domain knowledge and are the foundation everything else stands on.
 
 ### ❓ Outstanding questions
 
-- **(blocking)** Starting **outcome tier weights** per treatment?
-  [default: good 0.70 / complication 0.20 / poor 0.10]
-- **(blocking)** **Treatment duration classes** — how many and base durations?
-  [default: 3 classes — short 1d, medium 3d, long 7d, in sim-ms]
-- **(blocking)** **Urgency levels** and whether Stage 1 orders the waiting list by
-  urgency or FIFO? [default: 3 levels (routine/urgent/emergency-equivalent), but
-  Stage 1 schedules **FIFO**; urgency is recorded for the contract, not yet acted on]
-- **(blocking)** **Staffing floors** + soft-bonus factor starting values?
-  [default: min 1 doctor & 1 nurse; `softBonusPerExtra` = 0.1]
-- Arrival process rate (mean inter-arrival)? [default: tunable config, start ~1/day]
+All resolved by accepting the documented defaults (user: "use the defaults"):
+
+- **Outcome tier weights:** good 0.70 / complication 0.20 / poor 0.10. ✅
+- **Treatment duration classes:** 3 — short 1d, medium 3d, long 7d (sim-ms). ✅
+- **Urgency levels:** 3 (routine/urgent/emergency); Stage 1 schedules **FIFO**,
+  urgency recorded but not yet acted on. ✅
+- **Staffing floors:** min 1 doctor & 1 nurse; `softBonusPerExtra` = 0.1. ✅
+- **Arrival rate:** exponential, mean 1/day (tunable in config). ✅
 
 ### Description
 
@@ -214,16 +212,19 @@ exponential arrival sampler. All pure functions — no scheduling, no emission.
 
 ### Tasks
 
-- [ ] `state/patient.ts`: `PatientState` enum, `Patient`, `Urgency`,
-      `DurationClass`, `OutcomeTier`.
-- [ ] `state/resources.ts`: `ResourceState` (beds int; doctor/nurse headcount).
-- [ ] `model/transitions.ts`: allowed-transition table + guarded pure transition fns.
-- [ ] `model/treatment.ts`: `throughputMultiplier`, treatment-duration calc, 3-tier
-      outcome roll.
-- [ ] `model/arrivals.ts`: exponential inter-arrival sampler + patient-attribute draw.
-- [ ] `config/types.ts` + `config/defaults.ts`: `EngineConfig` etc. with agreed
-      starting values.
-- [ ] Unit tests for each of the above to 100%.
+- [x] `state/patient.ts`: `PatientState` enum, `Patient`, `Urgency`,
+      `DurationClass`, `OutcomeTier` (+ ordered constant arrays, `createPatient`).
+- [x] `state/resources.ts`: `ResourceState` (beds int; doctor/nurse headcount) +
+      `createResourceState`, `freeBeds`, `hasFreeBed`.
+- [x] `model/transitions.ts`: allowed-transition table + guarded pure transition fns
+      (both `Scheduled→Cancelled` and `Admitted→Cancelled` edges).
+- [x] `model/treatment.ts`: `throughputMultiplier`, `isStaffed`, `treatmentDuration`,
+      3-tier `rollOutcome`.
+- [x] `model/arrivals.ts`: exponential `nextInterArrival` + `drawUrgency` /
+      `drawDurationClass`.
+- [x] `config/types.ts` + `config/defaults.ts`: `EngineConfig` etc. with the agreed
+      default values.
+- [x] Unit tests for each to 100% (59 engine tests; full suite green, lint/typecheck clean).
 
 ---
 
