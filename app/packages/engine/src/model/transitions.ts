@@ -3,14 +3,18 @@
  * allowed-transition table. The table is the single source of truth for the
  * legal lifecycle graph; illegal transitions throw.
  *
- * Note both cancellation edges: `Scheduled -> Cancelled` (no bed available at the
- * scheduled admission time) and `Admitted -> Cancelled` (A11, cancelled before
- * treatment starts).
+ * Cancellation edges: `WaitingList -> Cancelled` (the bed manager's daily round
+ * cancels a patient whose wait has lapsed with no bed), plus the transient
+ * `Scheduled -> Cancelled` / `Admitted -> Cancelled` edges kept legal for the
+ * lifecycle's completeness.
  */
 import { type Patient, PatientState } from "../state/patient.js";
 
 const ALLOWED: Readonly<Record<PatientState, readonly PatientState[]>> = {
-    [PatientState.WaitingList]: [PatientState.Scheduled],
+    [PatientState.WaitingList]: [
+        PatientState.Scheduled,
+        PatientState.Cancelled,
+    ],
     [PatientState.Scheduled]: [PatientState.Admitted, PatientState.Cancelled],
     [PatientState.Admitted]: [PatientState.InTreatment, PatientState.Cancelled],
     [PatientState.InTreatment]: [PatientState.ReadyForDischarge],

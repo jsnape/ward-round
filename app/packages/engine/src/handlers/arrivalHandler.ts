@@ -1,8 +1,8 @@
 /**
- * Arrival (the engine's only self-perpetuating event): registers a new patient
- * on the waiting list, keeps the arrival stream going, and queues the patient
- * for scheduling. Patient attributes and the next gap are drawn from the
- * arrivals RNG stream.
+ * Arrival (the engine's self-perpetuating event): registers a new patient on the
+ * waiting list, keeps the arrival stream going, then tries to admit waiting
+ * patients into any free beds. The waiting list grows when arrivals outpace
+ * bed turnover.
  */
 import type { EventHandler } from "../sim/simulation.js";
 import { createPatient } from "../state/patient.js";
@@ -11,6 +11,7 @@ import {
     drawUrgency,
     nextInterArrival,
 } from "../model/arrivals.js";
+import { admitWaiting } from "./admission.js";
 
 export const handleArrival: EventHandler = (_event, ctx) => {
     // Keep the arrival process alive before anything else can go wrong.
@@ -44,6 +45,5 @@ export const handleArrival: EventHandler = (_event, ctx) => {
         durationClass,
     });
 
-    // Stage 1 pulls from the waiting list immediately (FIFO, no urgency ordering).
-    ctx.schedule({ kind: "schedule", time: ctx.simTime, patientId: id });
+    admitWaiting(ctx);
 };

@@ -6,6 +6,7 @@ const S = PatientState;
 
 const LEGAL: ReadonlyArray<[PatientState, PatientState]> = [
     [S.WaitingList, S.Scheduled],
+    [S.WaitingList, S.Cancelled],
     [S.Scheduled, S.Admitted],
     [S.Scheduled, S.Cancelled],
     [S.Admitted, S.InTreatment],

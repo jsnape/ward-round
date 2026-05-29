@@ -23,7 +23,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §4 — Engine: domain events & emitter
 - [x] §5 — Engine: DES scheduler & Simulation orchestration
 - [x] §6 — Engine: handlers (the lifecycle glue)
-- [ ] §7 — Engine: acceptance scenarios & determinism
+- [x] §7 — Engine: acceptance scenarios & determinism
 - [ ] §8 — Contract: schema/IDL, envelope & translator
 - [ ] §9 — Contract: sinks, save format & migration
 - [ ] §10 — Scoring package
@@ -349,8 +349,7 @@ bed release). Each mutates `WorldState`, emits domain events, and is
 
 ### ❓ Outstanding questions
 
-- Tolerance band for the outcome-distribution scenario? [default: ±3% over 10k
-  treatments]
+- Outcome-distribution tolerance: ±3% (over ~8k discharges from a 24k-event run). ✅
 
 ### Description
 
@@ -370,12 +369,24 @@ validates against, plus the determinism regression net. These are the engine's
 
 ### Tasks
 
-- [ ] `*.scenario.test.ts`: arrival-rate-grows-queue.
-- [ ] capacity-relieves-queue.
-- [ ] understaffing-stalls.
-- [ ] bed-pressure-cancellations.
-- [ ] determinism (deep-equal streams).
-- [ ] outcome-distribution-within-tolerance.
+- [x] `scenarios/lifecycle.scenario.test.ts`: arrival-rate-grows-queue (+ grows
+      over time).
+- [x] capacity-relieves-queue.
+- [x] understaffing-stalls (zero discharges, beds fill, queue grows).
+- [x] bed-pressure-cancellations (batched at bed-manager round times).
+- [x] determinism (deep-equal event streams, same config+seed).
+- [x] outcome-distribution-within-tolerance (±3%).
+- [x] Engine still at 100% coverage (124 tests; lint/typecheck clean).
+
+> **Note — §6 model revised here.** The original §6 cancelled instantly on no
+> bed, so the waiting list never grew (contradicting the spec). Reworked to a
+> **pull-based** model: patients wait on the list; a free, staffed bed pulls the
+> oldest (FIFO) on arrival and on discharge (`handlers/admission.ts`).
+> Cancellation is now a **daily bed-manager round** (`handlers/bedManagerHandler.ts`)
+> that cancels waiters past `maxWaitMs` — batched in the morning, not instant. The
+> `schedule`/`admit` event kinds were removed; `bedManagerRound` added; a
+> `bedManager` config block added; `WaitingList → Cancelled` is now a legal
+> transition.
 
 ---
 

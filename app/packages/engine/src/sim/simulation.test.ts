@@ -87,14 +87,14 @@ describe("runUntil", () => {
     function admitsAt(times: number[]) {
         const seen: number[] = [];
         const handlers: HandlerRegistry = {
-            admit: (event) => seen.push(event.time),
+            treatmentComplete: (event) => seen.push(event.time),
         };
         const sim = createSimulation(cfg, {
             handlers,
             bootstrap: (ctx) => {
                 times.forEach((t, i) =>
                     ctx.schedule({
-                        kind: "admit",
+                        kind: "treatmentComplete",
                         time: t,
                         patientId: `p-${i}`,
                     }),

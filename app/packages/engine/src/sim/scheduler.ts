@@ -11,31 +11,28 @@ import TinyQueue from "tinyqueue";
 
 export type EventKind =
     | "arrival"
-    | "schedule"
-    | "admit"
     | "treatmentComplete"
-    | "discharge";
+    | "discharge"
+    | "bedManagerRound";
 
 /** A queued event, with its assigned FIFO sequence number. */
 export type ScheduledEvent =
     | { kind: "arrival"; time: number; seq: number }
-    | { kind: "schedule"; time: number; seq: number; patientId: string }
-    | { kind: "admit"; time: number; seq: number; patientId: string }
     | {
           kind: "treatmentComplete";
           time: number;
           seq: number;
           patientId: string;
       }
-    | { kind: "discharge"; time: number; seq: number; patientId: string };
+    | { kind: "discharge"; time: number; seq: number; patientId: string }
+    | { kind: "bedManagerRound"; time: number; seq: number };
 
 /** What a caller provides to {@link EventScheduler.schedule}; `seq` is assigned. */
 export type ScheduledEventInput =
     | { kind: "arrival"; time: number }
-    | { kind: "schedule"; time: number; patientId: string }
-    | { kind: "admit"; time: number; patientId: string }
     | { kind: "treatmentComplete"; time: number; patientId: string }
-    | { kind: "discharge"; time: number; patientId: string };
+    | { kind: "discharge"; time: number; patientId: string }
+    | { kind: "bedManagerRound"; time: number };
 
 export class EventScheduler {
     private readonly queue = new TinyQueue<ScheduledEvent>(

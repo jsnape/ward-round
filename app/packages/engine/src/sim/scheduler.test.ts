@@ -11,9 +11,9 @@ describe("EventScheduler", () => {
 
     it("pops events in ascending time order", () => {
         const s = new EventScheduler();
-        s.schedule({ kind: "admit", time: 30, patientId: "p-3" });
-        s.schedule({ kind: "admit", time: 10, patientId: "p-1" });
-        s.schedule({ kind: "admit", time: 20, patientId: "p-2" });
+        s.schedule({ kind: "discharge", time: 30, patientId: "p-3" });
+        s.schedule({ kind: "discharge", time: 10, patientId: "p-1" });
+        s.schedule({ kind: "discharge", time: 20, patientId: "p-2" });
         expect(s.size).toBe(3);
         expect(s.pop()?.time).toBe(10);
         expect(s.pop()?.time).toBe(20);
@@ -22,9 +22,9 @@ describe("EventScheduler", () => {
 
     it("breaks ties by insertion order (FIFO seq)", () => {
         const s = new EventScheduler();
-        s.schedule({ kind: "schedule", time: 5, patientId: "first" });
-        s.schedule({ kind: "schedule", time: 5, patientId: "second" });
-        s.schedule({ kind: "schedule", time: 5, patientId: "third" });
+        s.schedule({ kind: "discharge", time: 5, patientId: "first" });
+        s.schedule({ kind: "discharge", time: 5, patientId: "second" });
+        s.schedule({ kind: "discharge", time: 5, patientId: "third" });
         const order = [s.pop(), s.pop(), s.pop()].map((e) =>
             e !== undefined && "patientId" in e ? e.patientId : undefined,
         );

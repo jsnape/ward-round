@@ -356,12 +356,27 @@ floor. The richer "freeze in-flight treatments and reschedule their completion o
 every staff change" model is the most complex handler interaction in Stage 1 and
 is **deferred** — it is not needed to prove the core loop.
 
-### 6.3 Cancellation cause
+### 6.3 Admission is pull-based; cancellation is a daily bed-manager round
 
-The `no_bed_available` cause (spec §4/§11.4) falls straight out of the admit
-handler: at A01, if `beds.occupied >= beds.capacity`, the patient transitions
-`Scheduled → Cancelled` with `reason: 'no_bed_available'` instead of seizing a
-bed.
+Admission is **pull-based**, so the waiting list can actually grow (the core of
+the spec's hypothesis). Patients arrive onto the `WaitingList`; whenever capacity
+may have opened up — on arrival and on discharge — `handlers/admission.ts` runs an
+**admit sweep** that pulls the longest-waiting patients (FIFO) into free beds
+(seizing a bed, then starting treatment if staffed, else stalling in `Admitted`).
+The list grows when arrivals outpace bed turnover.
+
+The `no_bed_available` cancellation (spec §4/§11.4) is **not instant**. It is a
+**daily bed-manager round** (`handlers/bedManagerHandler.ts`, the `bedManagerRound`
+event): each round cancels any waiting patient whose wait has exceeded
+`maxWaitMs` — their elective slot lapsed with no bed available — then reschedules
+the next round. This models a bed manager making batched decisions in the morning,
+not a per-patient instant reject. `WaitingList → Cancelled` is therefore a legal
+transition, and the `bedManager` config block (`roundIntervalMs`, `firstRoundAt`,
+`maxWaitMs`) tunes it.
+
+(The simulation's scheduled-event kinds are accordingly `arrival`,
+`treatmentComplete`, `discharge`, and `bedManagerRound`; admission itself is a
+sweep, not an event.)
 
 ### 6.4 How state is held
 

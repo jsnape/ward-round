@@ -13,25 +13,26 @@ import {
     createSimulation,
 } from "../sim/simulation.js";
 import { handleArrival } from "./arrivalHandler.js";
-import { handleSchedule } from "./scheduleHandler.js";
-import { handleAdmit } from "./admitHandler.js";
 import { handleTreatmentComplete } from "./treatmentHandler.js";
 import { handleDischarge } from "./dischargeHandler.js";
+import { handleBedManagerRound } from "./bedManagerHandler.js";
 
-// Each patient handler is typed to its specific event variant; the registry
-// stores them under their kind. The casts are safe: the scheduler only ever
-// dispatches an event to the handler registered under its own kind.
+// Patient handlers are typed to their specific event variant; the casts are safe
+// because the scheduler only dispatches an event to the handler under its kind.
 export const wardHandlers: HandlerRegistry = {
     arrival: handleArrival,
-    schedule: handleSchedule as EventHandler,
-    admit: handleAdmit as EventHandler,
     treatmentComplete: handleTreatmentComplete as EventHandler,
     discharge: handleDischarge as EventHandler,
+    bedManagerRound: handleBedManagerRound as EventHandler,
 };
 
-/** Seeds the first arrival; the arrival handler perpetuates the stream. */
+/** Seeds the first arrival and the first bed-manager round. */
 export function wardBootstrap(ctx: SimContext): void {
     ctx.schedule({ kind: "arrival", time: ctx.simTime });
+    ctx.schedule({
+        kind: "bedManagerRound",
+        time: ctx.config.bedManager.firstRoundAt,
+    });
 }
 
 /** Creates a fully-wired, ready-to-run ward simulation. */

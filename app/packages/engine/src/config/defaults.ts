@@ -21,4 +21,9 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
         urgencyWeights: { routine: 0.6, urgent: 0.3, emergency: 0.1 },
         durationClassWeights: { short: 0.5, medium: 0.35, long: 0.15 },
     },
+    bedManager: {
+        roundIntervalMs: MS_PER_DAY,
+        firstRoundAt: 8 * 60 * 60 * 1000, // 08:00 on day 0
+        maxWaitMs: 2 * MS_PER_DAY,
+    },
 };

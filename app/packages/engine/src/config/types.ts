@@ -35,6 +35,18 @@ export interface ResourceConfig {
     nurses: number;
 }
 
+/**
+ * The bed manager's daily decision round. Cancellations are not instant: each
+ * round (every `roundIntervalMs`, first at `firstRoundAt`) the manager cancels
+ * waiting patients whose wait has exceeded `maxWaitMs` — their elective slot has
+ * lapsed with no bed available.
+ */
+export interface BedManagerConfig {
+    roundIntervalMs: number;
+    firstRoundAt: number;
+    maxWaitMs: number;
+}
+
 /** The complete, deterministic configuration for a simulation run. */
 export interface EngineConfig {
     seed: number;
@@ -43,4 +55,5 @@ export interface EngineConfig {
     baseDurationMs: DurationConfig;
     outcomeWeights: OutcomeWeights;
     arrivals: ArrivalConfig;
+    bedManager: BedManagerConfig;
 }

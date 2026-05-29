@@ -1,12 +1,14 @@
 /**
- * Discharge (A03): releases the bed, finalises the patient, and emits the
- * length of stay alongside the recorded outcome. Idempotent on stale events.
+ * Discharge (A03): releases the bed, finalises the patient, emits length of stay
+ * and the recorded outcome, then pulls the next waiting patient into the freed
+ * bed. Idempotent on stale events.
  */
 import type { SimContext } from "../sim/simulation.js";
 import type { ScheduledEvent } from "../sim/scheduler.js";
 import { PatientState } from "../state/patient.js";
 import { transition } from "../model/transitions.js";
 import { freeBeds } from "../state/resources.js";
+import { admitWaiting } from "./admission.js";
 
 type DischargeEvent = Extract<ScheduledEvent, { kind: "discharge" }>;
 
@@ -37,4 +39,6 @@ export function handleDischarge(event: DischargeEvent, ctx: SimContext): void {
         outcome: patient.outcome!,
         lengthOfStay,
     });
+
+    admitWaiting(ctx); // the freed bed pulls the next waiting patient
 }
