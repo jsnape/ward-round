@@ -1,0 +1,39 @@
+{
+  "name": "@ward-round/root",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "volta": {
+    "node": "24.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "web"
+  ],
+  "scripts": {
+    "build": "npm run --workspace @ward-round/web build",
+    "typecheck": "tsc --noEmit -p tsconfig.json && npm run --workspace @ward-round/web check",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "gen": "npm run --workspace @ward-round/contract gen"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^3.2.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.0",
+    "prettier-plugin-svelte": "^3.3.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.2.0"
+  }
+}

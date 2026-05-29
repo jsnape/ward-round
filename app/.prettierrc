@@ -1,0 +1,19 @@
+{
+    "tabWidth": 4,
+    "plugins": ["prettier-plugin-svelte"],
+    "overrides": [
+        { "files": "*.svelte", "options": { "parser": "svelte" } },
+        {
+            "files": [
+                "*.json",
+                "*.jsonc",
+                "*.json5",
+                "*.yml",
+                "*.yaml",
+                "*.md",
+                "*.markdown"
+            ],
+            "options": { "tabWidth": 2 }
+        }
+    ]
+}

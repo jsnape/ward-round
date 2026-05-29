@@ -16,8 +16,8 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 
 **Progress overview**
 
-- [ ] §0 — Claude Code initialization (CLAUDE.md)
-- [ ] §1 — Repo skeleton, tooling & coverage gate
+- [x] §0 — Claude Code initialization (CLAUDE.md)
+- [x] §1 — Repo skeleton, tooling & coverage gate
 - [ ] §2 — Engine: primitives (RNG, heap, clock, ids)
 - [ ] §3 — Engine: domain model (state, transitions, treatment, arrivals)
 - [ ] §4 — Engine: domain events & emitter
@@ -68,14 +68,15 @@ commands are real and verified.
 
 ### Tasks
 
-- [ ] Author root `CLAUDE.md` from the spec + design docs.
-- [ ] Document the dependency direction and the engine purity boundary.
-- [ ] Document determinism rules (seeded RNG, no `Math.random()`).
-- [ ] Document the coverage gate and testing approach (Vitest + Playwright).
-- [ ] Document the monorepo layout and clean-root rule.
-- [ ] Document cross-platform rules + canonical commands (placeholders until §1).
-- [ ] Link the spec, design, and TODO docs.
-- [ ] After §1 lands, run `/init` to refine and verify the commands; commit.
+- [x] Author root `CLAUDE.md` from the spec + design docs.
+- [x] Document the dependency direction and the engine purity boundary.
+- [x] Document determinism rules (seeded RNG, no `Math.random()`).
+- [x] Document the coverage gate and testing approach (Vitest + Playwright).
+- [x] Document the monorepo layout and clean-root rule.
+- [x] Document cross-platform rules + canonical commands (placeholders until §1).
+- [x] Link the spec, design, and TODO docs.
+- [x] After §1 lands, run `/init` to refine and verify the commands (CLAUDE.md
+      updated with verified commands + required header). Commit pending user go-ahead.
 
 ---
 
@@ -113,24 +114,27 @@ rule, and CI. Cross-platform hygiene (§2a) is set up here too.
 
 ### Tasks
 
-- [ ] Create minimal root: `README.md`, `.editorconfig`, `.gitattributes`
-      (`* text=auto eol=lf`), `.github/`.
-- [ ] Create `app/` with `package.json` (workspaces `["packages/*","web"]`, Node 24
-      pin via `engines` + `volta`).
-- [ ] Add `app/tsconfig.base.json` (strict, `forceConsistentCasingInFileNames`).
-- [ ] Scaffold empty packages: `packages/engine`, `packages/contract`,
+- [x] Create minimal root: `README.md`, `.editorconfig`, `.gitattributes`
+      (`* text=auto eol=lf`), `.github/`. (also added `.gitignore`)
+- [x] Create `app/` with `package.json` (workspaces `["packages/*","web"]`, Node 24
+      pin via `engines` + `volta`; `engines` set to `>=24` so local Node 25 works).
+- [x] Add `app/tsconfig.base.json` (strict, `forceConsistentCasingInFileNames`).
+- [x] Scaffold empty packages: `packages/engine`, `packages/contract`,
       `packages/scoring`, `packages/host`, each with `package.json`, `tsconfig`,
-      `src/index.ts`.
-- [ ] Scaffold `web` (SvelteKit + Tailwind + lucide-svelte + TS).
-- [ ] Configure ESLint + Prettier + the `no-restricted-imports` boundary rule.
-- [ ] Add `app/vitest.workspace.ts` aggregating per-package configs with coverage
-      thresholds (100% pure packages / 80% web).
-- [ ] Add `app/playwright.config.ts` targeting the web dev server.
-- [ ] Add commit hooks (if chosen).
-- [ ] Add `.github/workflows/ci.yml`: install → lint → typecheck → test+coverage
-      → e2e; Linux primary, periodic macOS/Windows job.
-- [ ] Prove the gate: add then remove an intentionally-uncovered line and confirm
-      CI/`npm test` fails then passes.
+      `src/index.ts` (+ a version anchor test each to seed the gate).
+- [x] Scaffold `web` (SvelteKit + Tailwind v4 + `@lucide/svelte` + TS).
+- [x] Configure ESLint + Prettier + the `no-restricted-imports` boundary rule
+      (engine cannot import svelte / siblings / http). `.svelte` ESLint deferred
+      to §12; svelte-check covers components meanwhile.
+- [x] Add `app/vitest.config.ts` (Vitest v3 `projects`, replaces the deprecated
+      `vitest.workspace.ts`) with coverage thresholds (100% pure / 80% web).
+- [x] Add `app/playwright.config.ts` (+ a smoke e2e) targeting the previewed web app.
+- [~] Commit hooks: **decided CI-only** (lefthook config wants the git root, which
+      fights the clean-root rule). Run lint/test before pushing.
+- [x] Add `.github/workflows/ci.yml`: install → lint → typecheck → test+coverage,
+      separate e2e job, scheduled macOS/Windows drift job.
+- [x] Prove the gate: temporary uncovered branch made `npm test` exit 1 (lines
+      79.16% < 100%); reverted → 9 tests pass, 100%, exit 0.
 
 ---
 

@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+.svelte-kit/
+
+# test + coverage
+coverage/
+playwright-report/
+test-results/
+
+# generated contract types
+app/packages/contract/generated/
+
+# logs / env / os
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
