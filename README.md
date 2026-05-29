@@ -7,7 +7,7 @@ SvelteKit UI.
 ## Documentation
 
 - [docs/STAGE-1-SPEC.md](docs/STAGE-1-SPEC.md) — what Stage 1 is and why.
-- [docs/STAGE1-DESIGN.md](docs/STAGE1-DESIGN.md) — how it is built (architecture).
+- [docs/STAGE-1-DESIGN.md](docs/STAGE-1-DESIGN.md) — how it is built (architecture).
 - [docs/STAGE-1-TODO.md](docs/STAGE-1-TODO.md) — the section-by-section build plan.
 - [CLAUDE.md](CLAUDE.md) — working conventions and invariants.
 
@@ -17,7 +17,7 @@ All TypeScript lives under [`app/`](app), an npm-workspaces monorepo:
 
 | Package | Purpose |
 |---------|---------|
-| `packages/engine` | Pure DES engine — zero deps, no framework. |
+| `packages/engine` | Pure DES engine — no framework; one util dep (`tinyqueue`). |
 | `packages/contract` | Versioned business-event schema (TypeSpec) + save format. |
 | `packages/scoring` | NHS-mode scoring read-layer. |
 | `packages/host` | Framework-agnostic simulation driver. |

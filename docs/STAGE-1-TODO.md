@@ -1,6 +1,6 @@
 # Stage 1 Implementation TODO
 
-Working checklist for building Stage 1, derived from [STAGE1-DESIGN.md](STAGE1-DESIGN.md)
+Working checklist for building Stage 1, derived from [STAGE-1-DESIGN.md](STAGE-1-DESIGN.md)
 and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 
 **How to use this doc**
@@ -18,7 +18,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 
 - [x] §0 — Claude Code initialization (CLAUDE.md)
 - [x] §1 — Repo skeleton, tooling & coverage gate
-- [ ] §2 — Engine: primitives (RNG, heap, clock, ids)
+- [x] §2 — Engine: primitives (RNG, heap, clock, ids)
 - [ ] §3 — Engine: domain model (state, transitions, treatment, arrivals)
 - [ ] §4 — Engine: domain events & emitter
 - [ ] §5 — Engine: DES scheduler & Simulation orchestration
@@ -39,7 +39,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 
 - Any conventions to bake into `CLAUDE.md` beyond what the spec and design docs
   already state? [default: none — derive guardrails from STAGE-1-SPEC.md +
-  STAGE1-DESIGN.md]
+  STAGE-1-DESIGN.md]
 
 ### Description
 
@@ -61,7 +61,7 @@ commands are real and verified.
   and the monorepo layout (`app/` root, no `apps/` plural, clean repo root).
 - It records cross-platform rules (Windows + macOS; LF line endings; no
   OS-specific scripts) and the canonical build/test/lint commands.
-- It links to [STAGE-1-SPEC.md](STAGE-1-SPEC.md), [STAGE1-DESIGN.md](STAGE1-DESIGN.md),
+- It links to [STAGE-1-SPEC.md](STAGE-1-SPEC.md), [STAGE-1-DESIGN.md](STAGE-1-DESIGN.md),
   and this TODO.
 - A fresh session reading only `CLAUDE.md` understands the boundaries it must not
   cross.
@@ -93,7 +93,7 @@ commands are real and verified.
 
 ### Description
 
-Stand up the monorepo exactly as [STAGE1-DESIGN.md §2](STAGE1-DESIGN.md) specifies:
+Stand up the monorepo exactly as [STAGE-1-DESIGN.md §2](STAGE-1-DESIGN.md) specifies:
 clean root, self-contained `app/` workspace, the four empty package shells plus
 `web`, strict shared TS config, the Vitest workspace with the **hard coverage
 gate wired before any feature code**, Playwright config, the import-boundary lint
@@ -142,36 +142,40 @@ rule, and CI. Cross-platform hygiene (§2a) is set up here too.
 
 ### ❓ Outstanding questions
 
-- None expected. (RNG = mulberry32, heap = binary min-heap, ids = seeded counter,
-  all fixed by design.)
+- None expected. (RNG = hand-rolled mulberry32, event queue = `tinyqueue`
+  library, ids = seeded counter — sourcing settled with the user.)
 
 ### Description
 
 The dependency-free building blocks under `packages/engine/src`: the seedable
-forkable `Rng`, the generic comparator-injected `BinaryMinHeap`, the `SimClock`
-(integer-ms, monotonic), and the deterministic id counter. These have no domain
-knowledge and are the foundation everything else stands on.
+forkable `Rng`, the `SimClock` (integer-ms, monotonic), and the deterministic id
+counter. The event-queue need is met by the `tinyqueue` library (comparator
+carries the `time → seq` tiebreak) rather than a hand-rolled heap. These have no
+domain knowledge and are the foundation everything else stands on.
 
 ### Acceptance criteria
 
 - `Rng` produces a documented golden sequence for a fixed seed; `fork(label)`
   yields an independent stream; `getState`/`setState` round-trips exactly.
-- `BinaryMinHeap` orders by injected comparator, breaks ties by insertion `seq`,
-  and handles empty-pop and heapify edges.
+- `tinyqueue` is used for the event queue, driven by a comparator that breaks
+  ties by insertion `seq` (the scheduler's job in §5); behaviour spot-checked.
 - `SimClock` rejects backwards time (throws) and exposes current `simTime`.
 - `id` counter is deterministic (`p-1`, `p-2`, …) and resettable per simulation.
 - **100% line + branch coverage** on all four modules.
 
 ### Tasks
 
-- [ ] `rng/rng.ts`: `Rng` interface + mulberry32 + `fork` + `getState/setState` +
+- [x] `rng/rng.ts`: `Rng` interface + mulberry32 + `fork` + `getState/setState` +
       `weightedPick` helper.
-- [ ] `sim/heap.ts`: `BinaryMinHeap<T>` with injected comparator.
-- [ ] `sim/clock.ts`: `SimClock` with monotonic guard.
-- [ ] `util/id.ts`: deterministic seeded id generator.
-- [ ] Unit tests: rng golden sequence, fork independence, state round-trip.
-- [ ] Unit tests: heap ordering, seq tiebreak, empty-pop, heapify edges.
-- [ ] Unit tests: clock monotonic guard; id determinism.
+- [x] Adopt `tinyqueue` for the event queue (replaces hand-rolled heap; comparator
+      carries the `time → seq` tiebreak). Added as the engine's one runtime dep.
+- [x] `sim/clock.ts`: `SimClock` with monotonic guard.
+- [x] `util/id.ts`: deterministic seeded id generator.
+- [x] Unit tests: rng golden sequence, fork independence, state round-trip.
+- [x] Verify `tinyqueue` behaviour (comparator + `time → seq` tiebreak, drains
+      cleanly) — spot-checked; full usage covered by the §5 scheduler tests.
+- [x] Unit tests: clock monotonic guard; id determinism.
+- [x] All engine primitives at 100% line+branch (41 tests pass; lint/typecheck clean).
 
 ---
 
@@ -227,7 +231,7 @@ exponential arrival sampler. All pure functions — no scheduling, no emission.
 
 ### ❓ Outstanding questions
 
-- Confirm the domain-event variant list in [STAGE1-DESIGN.md §7.1](STAGE1-DESIGN.md)
+- Confirm the domain-event variant list in [STAGE-1-DESIGN.md §7.1](STAGE-1-DESIGN.md)
   is complete for Stage 1, or add/remove any. [default: as listed]
 
 ### Description
@@ -416,7 +420,7 @@ The `BusinessEventSink` interface with `ConsoleSink` + `InMemorySink`, the
 switched-off HTTP stub, and the **contract-owned versioned save format** (event
 log + portable world-state snapshot) plus `createSimulationFromSnapshot` wiring
 in the engine and the `migrate(vN→vN+1)` scaffold. See
-[STAGE1-DESIGN.md §7.3](STAGE1-DESIGN.md) — this is the cross-version-save design.
+[STAGE-1-DESIGN.md §7.3](STAGE-1-DESIGN.md) — this is the cross-version-save design.
 
 ### Acceptance criteria
 

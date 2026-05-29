@@ -58,7 +58,7 @@ ward-round/
     packages/
       contract/             // versioned schema + save format + translator (cross-language boundary)
         schema/             // language-neutral IDL lives HERE for now (§7.2), not at root
-      engine/               // pure TS DES — ZERO runtime deps, zero framework
+      engine/               // pure TS DES — no framework; one util dep (tinyqueue)
       scoring/              // pure NHS scoring read-layer over engine state (headless-testable)
       host/                 // framework-agnostic sim driver: wall->sim time, pause/speed
     web/                    // SvelteKit UI — thin glue over host + scoring + engine
@@ -95,7 +95,8 @@ web → host → scoring → engine
 web → contract → engine
 ```
 
-- **engine** depends on nothing (no framework, no HTTP, no HL7, no contract).
+- **engine** depends only on `tinyqueue` (no framework, no HTTP, no HL7, no
+  contract, no sibling packages).
 - **scoring** depends only on the engine's public read-model + domain events.
 - **host** depends only on the engine's public advancement API.
 - **contract** depends only on the engine's public domain-event types.
@@ -147,8 +148,7 @@ src/
     defaults.ts            // a known-good default config (tests + UI bootstrap)
   sim/
     clock.ts               // SimClock — owns simTime (integer ms), monotonic guard
-    heap.ts                // BinaryMinHeap<T> — generic, comparator-injected
-    scheduler.ts           // EventScheduler — the priority queue + advancement
+    scheduler.ts           // EventScheduler — wraps a tinyqueue priority queue + advancement
     simulation.ts          // Simulation — orchestrator wiring clock + scheduler + state + rng
   domain/
     events.ts              // DomainEvent discriminated union + type guards
@@ -192,13 +192,15 @@ consumer (see §7).
 The engine is a discrete-event simulation (DES), not a fixed-tick loop. Time
 jumps from scheduled event to scheduled event.
 
-- **Backing structure: a binary min-heap** (`heap.ts`, generic,
-  comparator-injected, ~40 lines, zero dependency). At Stage 1 scale a sorted
-  array would suffice, but the heap is cheap to write now, gives `O(log n)`
-  insert/pop, and removes the question of whether the structure survives later
-  stages (an ED, transfers, far more in-flight patients). The `Scheduler` API
-  hides the backing structure so it can be swapped internally without consumers
-  noticing.
+- **Backing structure: a binary min-heap from `tinyqueue`** (a tiny, vetted,
+  comparator-injected priority queue — the engine's single runtime dependency).
+  At Stage 1 scale a sorted array would suffice, but a heap gives `O(log n)`
+  insert/pop and survives later stages (an ED, transfers, far more in-flight
+  patients). The `Scheduler` wraps it so the backing structure can be swapped
+  internally without consumers noticing. (The RNG, clock, and id generator are
+  hand-rolled because they encode determinism/save-format contracts the engine
+  must own; the queue is a pure utility with no such contract, so a library is
+  the right call.)
 
 - **Scheduled event shape:**
   ```ts

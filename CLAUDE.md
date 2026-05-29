@@ -14,7 +14,7 @@ plus a minimal SvelteKit UI.
 Authoritative documents (read in this order):
 
 - [docs/STAGE-1-SPEC.md](docs/STAGE-1-SPEC.md) — *what* Stage 1 is and *why*.
-- [docs/STAGE1-DESIGN.md](docs/STAGE1-DESIGN.md) — *how* it is built (architecture).
+- [docs/STAGE-1-DESIGN.md](docs/STAGE-1-DESIGN.md) — *how* it is built (architecture).
 - [docs/STAGE-1-TODO.md](docs/STAGE-1-TODO.md) — the section-by-section build plan.
 
 When in doubt, the spec wins on behaviour, the design wins on structure.
@@ -33,7 +33,9 @@ web → host → scoring → engine
 web → contract → engine
 ```
 
-- `engine` depends on nothing (zero runtime deps).
+- `engine` depends only on `tinyqueue` (a tiny priority-queue utility) — no
+  framework, no sibling packages, no HTTP. The RNG, clock, and id generator are
+  hand-rolled on purpose (they encode determinism/save-format contracts).
 - `contract` depends only on the engine's public domain-event types.
 - `scoring` / `host` depend only on the engine's public API.
 - `web` is thin presentation glue.
