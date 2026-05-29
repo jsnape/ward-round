@@ -20,7 +20,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §1 — Repo skeleton, tooling & coverage gate
 - [x] §2 — Engine: primitives (RNG, heap, clock, ids)
 - [x] §3 — Engine: domain model (state, transitions, treatment, arrivals)
-- [ ] §4 — Engine: domain events & emitter
+- [x] §4 — Engine: domain events & emitter
 - [ ] §5 — Engine: DES scheduler & Simulation orchestration
 - [ ] §6 — Engine: handlers (the lifecycle glue)
 - [ ] §7 — Engine: acceptance scenarios & determinism
@@ -232,8 +232,10 @@ exponential arrival sampler. All pure functions — no scheduling, no emission.
 
 ### ❓ Outstanding questions
 
-- Confirm the domain-event variant list in [STAGE-1-DESIGN.md §7.1](STAGE-1-DESIGN.md)
-  is complete for Stage 1, or add/remove any. [default: as listed]
+- Domain-event variant list used as listed in
+  [STAGE-1-DESIGN.md §7.1](STAGE-1-DESIGN.md). ✅ (defaults). `GameStarted`
+  carries an **engine-native** `EngineConfigSummary` (seed + capacities) — mode and
+  budget are added by the contract layer in §8, keeping the engine scoring-ignorant.
 
 ### Description
 
@@ -251,9 +253,12 @@ engine's own vocabulary; the contract and UI subscribe to them.
 
 ### Tasks
 
-- [ ] `domain/events.ts`: `DomainEvent` union + per-kind type guards.
-- [ ] `domain/emitter.ts`: subscribe/unsubscribe + synchronous fan-out.
-- [ ] Unit tests: fan-out order, multi-subscriber, unsubscribe, guards.
+- [x] `domain/events.ts`: `DomainEvent` union + `DOMAIN_EVENT_KINDS`,
+      `isDomainEvent` (trust-boundary guard), `isEventKind` (narrowing).
+- [x] `domain/emitter.ts`: `subscribe` (returns unsubscribe) + synchronous `emit`
+      fan-out in subscription order.
+- [x] Unit tests: fan-out order, multi-subscriber, unsubscribe, no-listener no-op,
+      guard accept/reject paths. (80 tests total; 100%, lint/typecheck clean.)
 
 ---
 
