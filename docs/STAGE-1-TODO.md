@@ -26,8 +26,8 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §7 — Engine: acceptance scenarios & determinism
 - [x] §8 — Contract: schema/IDL, envelope & translator
 - [x] §9 — Contract: sinks, save format & migration
-- [ ] §10 — Scoring package
-- [ ] §11 — Host package (sim driver)
+- [x] §10 — Scoring package
+- [x] §11 — Host package (sim driver)
 - [ ] §12 — Web app: UI
 - [ ] §13 — Web app: e2e & final wiring
 
@@ -516,9 +516,11 @@ discharge only; no credit for cancellations. Engine stays ignorant of it.
 
 ### Tasks
 
-- [ ] `scoring/score.ts`: pure scoring + budget functions.
-- [ ] Wire agreed payment/budget/weights into config.
-- [ ] Unit tests: per-tier contribution, cancellation = no pay, budget math.
+- [x] `scoring/score.ts`: pure `scoreState(readModel, config)` + `DEFAULT_SCORING_CONFIG`.
+- [x] Scoring config (budget, paymentPerDischarge, outcome weights) owned by the
+      scoring package (engine stays ignorant).
+- [x] Unit tests: per-tier contribution, cancellation/in-flight = no pay, budget
+      math, default config. (5 tests; 100%.)
 
 ---
 
@@ -546,8 +548,10 @@ targets the DOM. Pure arithmetic so it tests to 100% without a browser.
 
 ### Tasks
 
-- [ ] `host/driver.ts`: budget calc, pause/speed state, `runUntil` invocation.
-- [ ] Unit tests: speed scaling, pause/resume, monotonic target, budgeting.
+- [x] `host/driver.ts`: `SimDriver` — wall→sim budget, pause/speed state,
+      `runUntil` invocation; `SPEED_PRESETS` (1/2/5), 1s wall = 1 sim-hour default.
+- [x] Unit tests (FakeSim): wall→sim mapping, speed scaling, pause/resume,
+      sub-ms/non-positive no-op, speed validation, passthroughs. (8 tests; 100%.)
 
 ---
 
