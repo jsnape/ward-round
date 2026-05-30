@@ -15,13 +15,13 @@ and [STAGE-2-SPEC.md](STAGE-2-SPEC.md).
 **Progress overview**
 
 - [x] §0 — Stage 2 documentation (spec, design, TODO)
-- [ ] §0b — Staffing model overhaul (remove StaffingConfig; add ward.acuity + staffing.ts)
-- [ ] §1 — Procedure catalog (replace durationClass with procedureId)
-- [ ] §2 — Staffing costs (daily salary drain in scoring)
-- [ ] §3 — Challenge rebalancing (new defaults + scenario tests)
-- [ ] §4 — Simulation speed (new presets + labels)
-- [ ] §5 — Patient visibility UI (inpatient cards, waiting list rows)
-- [ ] §6 — Resource constraint visualization (bottleneck badge, nurse split)
+- [x] §0b — Staffing model overhaul (remove StaffingConfig; add ward.acuity + staffing.ts)
+- [x] §1 — Procedure catalog (replace durationClass with procedureId)
+- [x] §2 — Staffing costs (daily salary drain in scoring)
+- [x] §3 — Challenge rebalancing (new defaults + scenario tests)
+- [x] §4 — Simulation speed (new presets + labels)
+- [x] §5 — Patient visibility UI (inpatient cards, waiting list rows)
+- [x] §6 — Resource constraint visualization (bottleneck badge, nurse split)
 
 ---
 
