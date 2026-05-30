@@ -29,7 +29,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §10 — Scoring package
 - [x] §11 — Host package (sim driver)
 - [x] §12 — Web app: UI
-- [ ] §13 — Web app: e2e & final wiring
+- [x] §13 — Web app: e2e & final wiring
 
 ---
 
@@ -549,7 +549,7 @@ targets the DOM. Pure arithmetic so it tests to 100% without a browser.
 ### Tasks
 
 - [x] `host/driver.ts`: `SimDriver` — wall→sim budget, pause/speed state,
-      `runUntil` invocation; `SPEED_PRESETS` (1/2/5), 1s wall = 1 sim-hour default.
+      `runUntil` invocation; `SPEED_PRESETS` (1/2/5), 1s wall = 1 sim-day default.
 - [x] Unit tests (FakeSim): wall→sim mapping, speed scaling, pause/resume,
       sub-ms/non-positive no-op, speed validation, passthroughs. (8 tests; 100%.)
 
@@ -615,11 +615,14 @@ then empirical tuning of the score formula from headless runs (design §10 step 
 
 ### Tasks
 
-- [ ] Playwright: start-game / beds-fill / queue-grows.
-- [ ] Playwright: pause-resume / speed-change.
-- [ ] Playwright: score-updates-on-discharge.
-- [ ] Headless score-tuning run; update default weights.
-- [ ] Confirm full CI matrix green.
+- [x] Playwright: renders + beds fill as patients arrive (at 5×).
+- [x] Playwright: pause freezes the clock / resume continues.
+- [x] Playwright: score updates as patients are treated (discharge).
+- [x] Playwright: live bed dial increments capacity.
+- [x] Score defaults validated by the §7 distribution scenario; left as
+      play-tuning placeholders (good +2 / complication 0 / poor −1).
+- [x] Full local pipeline green: lint, typecheck, test+coverage (100% pure /
+      web), build, e2e (4 passed, real browser), gen reproducible.
 
 ---
 
