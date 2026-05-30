@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ENGINE_CONFIG } from "../config/defaults.js";
+import { DEFAULT_ENGINE_CONFIG, MS_PER_DAY } from "../config/defaults.js";
 import type { DomainEvent } from "../domain/events.js";
-import { PatientState } from "../state/patient.js";
-import { createWardSimulation } from "./ward.js";
+import { type Patient, PatientState, createPatient } from "../state/patient.js";
+import type { PortableState } from "../state/worldState.js";
+import {
+    createWardSimulation,
+    createWardSimulationFromSnapshot,
+} from "./ward.js";
 
 function runWard(seed: number, events = 3000) {
     const sim = createWardSimulation({ ...DEFAULT_ENGINE_CONFIG, seed });
@@ -47,5 +51,90 @@ describe("createWardSimulation", () => {
         const b = runWard(123);
         expect(a.sim.state.counters).toEqual(b.sim.state.counters);
         expect(a.emitted.length).toBe(b.emitted.length);
+    });
+});
+
+describe("createWardSimulationFromSnapshot", () => {
+    it("snapshots a live game and resumes it, continuing forward", () => {
+        const { sim } = runWard(7);
+        const snapshot = sim.snapshot();
+        const beforeDischarged = snapshot.counters.discharged;
+        expect(beforeDischarged).toBeGreaterThan(0);
+
+        const resumed = createWardSimulationFromSnapshot(snapshot, {
+            ...DEFAULT_ENGINE_CONFIG,
+            seed: 7,
+        });
+        const emitted: DomainEvent[] = [];
+        resumed.subscribe((e) => emitted.push(e));
+        resumed.start();
+        expect(resumed.simTime).toBe(snapshot.simTime);
+        // Resume does not replay history.
+        expect(emitted.some((e) => e.kind === "GameStarted")).toBe(false);
+
+        resumed.run(2000);
+        expect(resumed.state.counters.discharged).toBeGreaterThan(
+            beforeDischarged,
+        );
+    });
+
+    it("re-derives pending events for in-flight, ready, and waiting patients", () => {
+        const mk = (
+            id: string,
+            state: PatientState,
+            extra: Partial<Patient> = {},
+        ): Patient => {
+            const p = createPatient({
+                id,
+                urgency: "routine",
+                durationClass: "short",
+                registeredAt: 0,
+            });
+            p.state = state;
+            Object.assign(p, extra);
+            return p;
+        };
+        const snapshot: PortableState = {
+            simTime: 10 * MS_PER_DAY,
+            resources: {
+                beds: { capacity: 3, occupied: 3 },
+                doctors: { headcount: 3 },
+                nurses: { headcount: 5 },
+            },
+            counters: {
+                registered: 4,
+                admitted: 3,
+                discharged: 0,
+                cancelled: 0,
+            },
+            patients: [
+                mk("in", PatientState.InTreatment, {
+                    admittedAt: 9 * MS_PER_DAY,
+                    expectedDischargeAt: 11 * MS_PER_DAY,
+                }),
+                // No expectedDischargeAt — reschedules at the current sim time.
+                mk("in2", PatientState.InTreatment, {
+                    admittedAt: 9 * MS_PER_DAY,
+                }),
+                mk("ready", PatientState.ReadyForDischarge, {
+                    admittedAt: 9 * MS_PER_DAY,
+                    outcome: "good",
+                }),
+                mk("wait", PatientState.WaitingList),
+            ],
+        };
+
+        const resumed = createWardSimulationFromSnapshot(snapshot);
+        resumed.start();
+        // The ready patient discharges, freeing a bed the waiter takes; the
+        // in-treatment patients complete — all progress past their snapshot state.
+        resumed.run(2000);
+        const byId = new Map(
+            resumed.state.patients.map((p) => [p.id, p.state]),
+        );
+        expect(byId.get("ready")).toBe(PatientState.Discharged);
+        expect(byId.get("in")).toBe(PatientState.Discharged);
+        expect(byId.get("in2")).toBe(PatientState.Discharged);
+        expect(byId.get("wait")).not.toBe(PatientState.WaitingList);
     });
 });

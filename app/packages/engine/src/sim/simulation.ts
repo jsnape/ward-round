@@ -18,10 +18,13 @@ import {
     EventScheduler,
 } from "./scheduler.js";
 import {
+    type PortableState,
     type WorldState,
     type WorldStateReadModel,
     createWorldState,
+    fromPortable,
     projectReadModel,
+    toPortable,
 } from "../state/worldState.js";
 
 /** What a handler is given: current state, RNG streams, and ways to act. */
@@ -50,6 +53,10 @@ export interface SimulationDeps {
     bootstrap?: (ctx: SimContext) => void;
     /** Safety bound for a single {@link Simulation.runUntil} call. */
     maxIterations?: number;
+    /** Restore from a portable snapshot instead of a fresh world. */
+    initialState?: PortableState;
+    /** Skip the `GameStarted` emission (used when resuming a saved game). */
+    suppressGameStarted?: boolean;
 }
 
 /** The public simulation surface consumed by hosts, scoring, and the contract. */
@@ -65,6 +72,8 @@ export interface Simulation {
     run(maxEvents?: number): number;
     subscribe(listener: DomainEventListener): () => void;
     readonly state: WorldStateReadModel;
+    /** Capture a portable snapshot for saving. */
+    snapshot(): PortableState;
 }
 
 const DEFAULT_MAX_ITERATIONS = 1_000_000;
@@ -80,19 +89,26 @@ class SimulationImpl implements Simulation {
     private readonly handlers: HandlerRegistry;
     private readonly bootstrap: ((ctx: SimContext) => void) | undefined;
     private readonly maxIterations: number;
+    private readonly suppressGameStarted: boolean;
     private started = false;
 
     constructor(
         private readonly config: EngineConfig,
         deps: SimulationDeps,
     ) {
-        this.world = createWorldState(config);
+        if (deps.initialState !== undefined) {
+            this.world = fromPortable(deps.initialState);
+            this.clock.advanceTo(deps.initialState.simTime);
+        } else {
+            this.world = createWorldState(config);
+        }
         const root = createRng(config.seed);
         this.rngArrivals = root.fork("arrivals");
         this.rngOutcomes = root.fork("outcomes");
         this.handlers = deps.handlers ?? {};
         this.bootstrap = deps.bootstrap;
         this.maxIterations = deps.maxIterations ?? DEFAULT_MAX_ITERATIONS;
+        this.suppressGameStarted = deps.suppressGameStarted ?? false;
     }
 
     get simTime(): number {
@@ -101,6 +117,10 @@ class SimulationImpl implements Simulation {
 
     get state(): WorldStateReadModel {
         return projectReadModel(this.world);
+    }
+
+    snapshot(): PortableState {
+        return toPortable(this.world);
     }
 
     subscribe(listener: DomainEventListener): () => void {
@@ -112,16 +132,18 @@ class SimulationImpl implements Simulation {
             return;
         }
         this.started = true;
-        this.emitter.emit({
-            kind: "GameStarted",
-            simTime: this.clock.simTime,
-            config: {
-                seed: this.config.seed,
-                beds: this.config.resources.beds,
-                doctors: this.config.resources.doctors,
-                nurses: this.config.resources.nurses,
-            },
-        });
+        if (!this.suppressGameStarted) {
+            this.emitter.emit({
+                kind: "GameStarted",
+                simTime: this.clock.simTime,
+                config: {
+                    seed: this.config.seed,
+                    beds: this.config.resources.beds,
+                    doctors: this.config.resources.doctors,
+                    nurses: this.config.resources.nurses,
+                },
+            });
+        }
         this.bootstrap?.(this.makeContext());
     }
 

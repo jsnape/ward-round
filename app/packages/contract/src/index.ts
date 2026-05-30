@@ -17,6 +17,14 @@ export {
     createTranslator,
 } from "./translator.js";
 
+// Sinks
+export { InMemorySink, ConsoleSink, HttpSink } from "./sinks.js";
+
+// Save format, replay, migration
+export { type SaveFile, SAVE_VERSION, createSaveFile } from "./save/format.js";
+export { type ReplaySummary, replayLog } from "./save/replay.js";
+export { type SaveMigrations, MIGRATIONS, migrate } from "./save/migrate.js";
+
 // The generated contract types (TypeSpec → JSON Schema → TS). The union is
 // re-exported under a clean name; the individual `*Json` types remain available.
 export type { BusinessEventJson as BusinessEvent } from "../generated/businessEvents.js";

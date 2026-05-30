@@ -4,7 +4,9 @@ import { PatientState, createPatient } from "./patient.js";
 import {
     type WorldState,
     createWorldState,
+    fromPortable,
     projectReadModel,
+    toPortable,
 } from "./worldState.js";
 
 describe("createWorldState", () => {
@@ -72,5 +74,42 @@ describe("projectReadModel", () => {
         view.counters.discharged = 999;
         expect(world.patients.size).toBe(2);
         expect(world.counters.discharged).toBe(1);
+    });
+});
+
+describe("toPortable / fromPortable", () => {
+    function seeded(): WorldState {
+        const world = createWorldState(DEFAULT_ENGINE_CONFIG);
+        world.simTime = 1234;
+        world.resources.beds.occupied = 2;
+        world.counters.discharged = 3;
+        const p = createPatient({
+            id: "p-1",
+            urgency: "urgent",
+            durationClass: "long",
+            registeredAt: 0,
+        });
+        p.state = PatientState.InTreatment;
+        p.admittedAt = 100;
+        p.expectedDischargeAt = 900;
+        world.patients.set(p.id, p);
+        return world;
+    }
+
+    it("round-trips through a portable snapshot", () => {
+        const world = seeded();
+        const portable = toPortable(world);
+        const restored = toPortable(fromPortable(portable));
+        expect(restored).toEqual(portable);
+    });
+
+    it("produces an independent copy (mutation does not leak back)", () => {
+        const world = seeded();
+        const portable = toPortable(world);
+        const rebuilt = fromPortable(portable);
+        rebuilt.resources.beds.occupied = 99;
+        rebuilt.patients.get("p-1")!.state = PatientState.Discharged;
+        expect(world.resources.beds.occupied).toBe(2);
+        expect(world.patients.get("p-1")?.state).toBe(PatientState.InTreatment);
     });
 });

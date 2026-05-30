@@ -64,6 +64,50 @@ export interface WorldStateReadModel {
     counters: WorldCounters;
 }
 
+/**
+ * A portable, serialisable snapshot of world state — plain data only, no engine
+ * internals (no scheduler, no RNG). Used as the forward-continuation half of a
+ * save (the business-event log is the historical half).
+ */
+export interface PortableState {
+    simTime: number;
+    resources: ResourceState;
+    counters: WorldCounters;
+    patients: Patient[];
+}
+
+/** Captures a portable snapshot of the world (deep-copied plain data). */
+export function toPortable(world: WorldState): PortableState {
+    return {
+        simTime: world.simTime,
+        resources: {
+            beds: { ...world.resources.beds },
+            doctors: { ...world.resources.doctors },
+            nurses: { ...world.resources.nurses },
+        },
+        counters: { ...world.counters },
+        patients: [...world.patients.values()].map((p) => ({ ...p })),
+    };
+}
+
+/** Rebuilds a world from a portable snapshot. */
+export function fromPortable(state: PortableState): WorldState {
+    const patients = new Map<string, Patient>();
+    for (const patient of state.patients) {
+        patients.set(patient.id, { ...patient });
+    }
+    return {
+        patients,
+        resources: {
+            beds: { ...state.resources.beds },
+            doctors: { ...state.resources.doctors },
+            nurses: { ...state.resources.nurses },
+        },
+        counters: { ...state.counters },
+        simTime: state.simTime,
+    };
+}
+
 function toView(patient: Patient): PatientView {
     const view: PatientView = {
         id: patient.id,

@@ -25,7 +25,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §6 — Engine: handlers (the lifecycle glue)
 - [x] §7 — Engine: acceptance scenarios & determinism
 - [x] §8 — Contract: schema/IDL, envelope & translator
-- [ ] §9 — Contract: sinks, save format & migration
+- [x] §9 — Contract: sinks, save format & migration
 - [ ] §10 — Scoring package
 - [ ] §11 — Host package (sim driver)
 - [ ] §12 — Web app: UI
@@ -448,11 +448,9 @@ Generates UUIDs for `eventId`/`gameId`.
 
 ### ❓ Outstanding questions
 
-- **(blocking)** Should Stage 1 ship a working **save/load UI**, or just build &
-  test the save *format* (load exercised in tests only)? [default: format + load
-  entry point + tests now; save/load UI button is a §12 stretch task]
-- Snapshot cadence for Stage 1? [default: snapshot on demand only; periodic
-  cadence deferred]
+- Save **format + load path + tests** built now; no save/load UI in Stage 1
+  (the engine's `createWardSimulationFromSnapshot` is the load path). ✅
+- Snapshot cadence: on demand only (`sim.snapshot()`); periodic cadence deferred. ✅
 
 ### Description
 
@@ -477,12 +475,19 @@ in the engine and the `migrate(vN→vN+1)` scaffold. See
 
 ### Tasks
 
-- [ ] `sinks.ts`: `BusinessEventSink` + `ConsoleSink` + `InMemorySink` + HTTP stub.
-- [ ] `save/format.ts`: versioned save type (log + portable snapshot).
-- [ ] `save/replay.ts`: fold event log → reconstructed past state.
-- [ ] `save/migrate.ts`: migration registry + `v1→v2` scaffold.
-- [ ] Engine `createSimulationFromSnapshot` + future-event re-derivation.
-- [ ] Tests: round-trip, replay-exactness, migration, load-and-continue.
+- [x] `sinks.ts`: `BusinessEventSink` impls — `InMemorySink`, `ConsoleSink`
+      (injectable logger), `HttpSink` (no-op stub).
+- [x] `save/format.ts`: versioned `SaveFile` (log + portable snapshot) + `SAVE_VERSION`.
+- [x] `save/replay.ts`: `replayLog` folds the log → historical summary (outcomes
+      recorded, not re-rolled).
+- [x] `save/migrate.ts`: injectable migration registry + `migrate` (all failure
+      modes tested; registry empty until a v2 exists).
+- [x] Engine `toPortable`/`fromPortable` + `Simulation.snapshot()` +
+      `createWardSimulationFromSnapshot` (re-derives pending events, fresh RNG,
+      no GameStarted re-emit).
+- [x] Tests: save round-trip + JSON round-trip, replay fold, migration (current/
+      newer/missing/applied), engine snapshot+resume + branch re-derivation.
+      (Contract 16 tests, engine restore tests; 100%, gen reproducible.)
 
 ---
 

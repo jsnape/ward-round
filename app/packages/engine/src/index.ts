@@ -10,8 +10,10 @@ export const ENGINE_VERSION = "0.0.0";
 // Construction + orchestration
 export {
     createWardSimulation,
+    createWardSimulationFromSnapshot,
     wardHandlers,
     wardBootstrap,
+    wardRestoreBootstrap,
 } from "./handlers/ward.js";
 export { createSimulation } from "./sim/simulation.js";
 export type {
@@ -31,12 +33,18 @@ export type {
 } from "./sim/scheduler.js";
 
 // World state + read model
-export { createWorldState, projectReadModel } from "./state/worldState.js";
+export {
+    createWorldState,
+    projectReadModel,
+    toPortable,
+    fromPortable,
+} from "./state/worldState.js";
 export type {
     WorldState,
     WorldStateReadModel,
     WorldCounters,
     PatientView,
+    PortableState,
 } from "./state/worldState.js";
 
 // Patient vocabulary + resources
