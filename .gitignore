@@ -11,6 +11,9 @@ coverage/
 playwright-report/
 test-results/
 
+# generated from source (TypeSpec → JSON Schema → TS); produced on install
+app/packages/contract/generated/
+
 # logs / env / os
 *.log
 .env

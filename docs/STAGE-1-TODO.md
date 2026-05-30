@@ -434,8 +434,9 @@ Generates UUIDs for `eventId`/`gameId`.
 - [x] `schema/main.tsp`: TypeSpec models for the envelope + all business-event
       types (`safeint` for numeric fields → TS `number`).
 - [x] `npm run gen`: TypeSpec → JSON Schema (`generated/json-schema/`) →
-      `generated/businessEvents.ts`. Output committed; `gen:check` staleness
-      script + CI step added. `generated/` excluded from lint/prettier/coverage.
+      `generated/businessEvents.ts`. Output is **gitignored** and produced on
+      install via a root `postinstall` (so `npm ci` regenerates it in CI and
+      locally). `generated/` excluded from lint/prettier/coverage.
 - [x] `SCHEMA_VERSION` (`version.ts`) + barrel re-exports the generated `BusinessEvent`.
 - [x] `translator.ts`: domain→business mapping + derived `BudgetUpdated` running
       tally + injectable UUID/clock (defaults via `globalThis.crypto`).

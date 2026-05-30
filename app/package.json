@@ -13,6 +13,7 @@
     "web"
   ],
   "scripts": {
+    "postinstall": "npm run gen",
     "build": "npm run --workspace @ward-round/web build",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run --workspace @ward-round/web check",
     "lint": "eslint . && prettier --check .",

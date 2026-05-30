@@ -10,8 +10,7 @@
     }
   },
   "scripts": {
-    "gen": "tsp compile schema && json2ts -i generated/json-schema/BusinessEvent.json --cwd generated/json-schema --additionalProperties false -o generated/businessEvents.ts",
-    "gen:check": "npm run gen && git diff --exit-code packages/contract/generated"
+    "gen": "tsp compile schema && json2ts -i generated/json-schema/BusinessEvent.json --cwd generated/json-schema --additionalProperties false -o generated/businessEvents.ts"
   },
   "dependencies": {
     "@ward-round/engine": "*"
