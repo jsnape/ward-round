@@ -13,7 +13,12 @@ export interface ReplaySummary {
     discharged: number;
     cancelled: number;
     outcomes: Record<OutcomeTier, number>;
-    budget: { spent: number; remaining: number; outcomeScore: number };
+    budget: {
+        spent: number;
+        remaining: number;
+        outcomeScore: number;
+        staffCostToDate: number;
+    };
 }
 
 export function replayLog(log: readonly BusinessEventJson[]): ReplaySummary {
@@ -23,7 +28,7 @@ export function replayLog(log: readonly BusinessEventJson[]): ReplaySummary {
         discharged: 0,
         cancelled: 0,
         outcomes: { good: 0, complication: 0, poor: 0 },
-        budget: { spent: 0, remaining: 0, outcomeScore: 0 },
+        budget: { spent: 0, remaining: 0, outcomeScore: 0, staffCostToDate: 0 },
     };
     for (const event of log) {
         switch (event.type) {
@@ -45,6 +50,7 @@ export function replayLog(log: readonly BusinessEventJson[]): ReplaySummary {
                     spent: event.payload.spent,
                     remaining: event.payload.remaining,
                     outcomeScore: event.payload.outcomeScore,
+                    staffCostToDate: event.payload.staffCostToDate,
                 };
                 break;
             default:

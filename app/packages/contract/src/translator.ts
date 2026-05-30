@@ -5,7 +5,7 @@
  * accumulated events (BudgetUpdated). It sees only the engine's *public* domain
  * union — never engine internals — which keeps the boundary honest.
  */
-import type { DomainEvent, OutcomeTier } from "@ward-round/engine";
+import { MS_PER_DAY, type DomainEvent, type OutcomeTier } from "@ward-round/engine";
 import type {
     AdmissionCancelledJson,
     BudgetUpdatedJson,
@@ -30,6 +30,9 @@ export interface TranslatorConfig {
     paymentPerDischarge: number;
     outcomeScore: Record<OutcomeTier, number>;
     mode?: "NHS";
+    dailyDoctorCost: number;
+    dailyNurseCost: number;
+    dailyBedCost: number;
 }
 
 /** Injectable dependencies (defaults are non-deterministic, hence injectable). */
@@ -55,9 +58,22 @@ export function createTranslator(
     const now = deps.now ?? (() => new Date());
     const mode = config.mode ?? "NHS";
 
-    let spent = 0;
     let patientsTreated = 0;
     let outcomeScore = 0;
+    // Staff/bed headcounts for salary computation — updated from events.
+    let doctors = 0;
+    let nurses = 0;
+    let beds = 0;
+
+    function staffCostAt(simTime: number): number {
+        const simDays = simTime / MS_PER_DAY;
+        return Math.round(
+            simDays *
+                (doctors * config.dailyDoctorCost +
+                    nurses * config.dailyNurseCost +
+                    beds * config.dailyBedCost),
+        );
+    }
 
     function wrap<E extends BusinessEventJson>(
         type: E["type"],
@@ -79,15 +95,25 @@ export function createTranslator(
         handle(event: DomainEvent): void {
             switch (event.kind) {
                 case "GameStarted":
+                    doctors = event.config.doctors;
+                    nurses = event.config.nurses;
+                    beds = event.config.beds;
                     deps.sink.emit(
                         wrap<GameStartedJson>("GameStarted", event.simTime, {
                             mode,
                             budget: config.budget,
-                            beds: event.config.beds,
-                            doctors: event.config.doctors,
-                            nurses: event.config.nurses,
+                            beds,
+                            doctors,
+                            nurses,
                         }),
                     );
+                    break;
+                case "StaffChanged":
+                    if (event.role === "doctor") {
+                        doctors = event.count;
+                    } else {
+                        nurses = event.count;
+                    }
                     break;
                 case "PatientRegistered":
                     deps.sink.emit(
@@ -148,7 +174,7 @@ export function createTranslator(
                         ),
                     );
                     break;
-                case "PatientDischarged":
+                case "PatientDischarged": {
                     deps.sink.emit(
                         wrap<PatientDischargedJson>(
                             "PatientDischarged",
@@ -160,25 +186,31 @@ export function createTranslator(
                             },
                         ),
                     );
-                    // Derived running tally for the outward feed.
                     patientsTreated += 1;
-                    spent += config.paymentPerDischarge;
                     outcomeScore += config.outcomeScore[event.outcome];
+                    const staffCostToDate = staffCostAt(event.simTime);
+                    const dischargeIncome =
+                        patientsTreated * config.paymentPerDischarge;
                     deps.sink.emit(
                         wrap<BudgetUpdatedJson>(
                             "BudgetUpdated",
                             event.simTime,
                             {
-                                spent,
-                                remaining: config.budget - spent,
+                                spent: staffCostToDate,
+                                remaining:
+                                    config.budget +
+                                    dischargeIncome -
+                                    staffCostToDate,
                                 patientsTreated,
                                 outcomeScore,
+                                staffCostToDate,
                             },
                         ),
                     );
                     break;
-                // BedSeized, OutcomeRolled, BedReleased, StaffChanged are
-                // engine-internal and not part of the published contract.
+                }
+                // BedSeized, OutcomeRolled, BedReleased are engine-internal
+                // and not part of the published contract.
                 default:
                     break;
             }

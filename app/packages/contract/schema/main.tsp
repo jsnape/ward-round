@@ -106,6 +106,7 @@ model BudgetUpdatedPayload {
     remaining: safeint;
     patientsTreated: int32;
     outcomeScore: float64;
+    staffCostToDate: safeint;
 }
 
 /** The common envelope shared by every business event. */

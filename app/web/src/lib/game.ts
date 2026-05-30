@@ -44,6 +44,9 @@ export class Game {
                 budget: DEFAULT_SCORING_CONFIG.budget,
                 paymentPerDischarge: DEFAULT_SCORING_CONFIG.paymentPerDischarge,
                 outcomeScore: DEFAULT_SCORING_CONFIG.outcomeScore,
+                dailyDoctorCost: DEFAULT_SCORING_CONFIG.dailyDoctorCost,
+                dailyNurseCost: DEFAULT_SCORING_CONFIG.dailyNurseCost,
+                dailyBedCost: DEFAULT_SCORING_CONFIG.dailyBedCost,
             },
             { sink: this.sink },
         );
