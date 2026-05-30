@@ -10,11 +10,6 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
     seed: 1,
     resources: { beds: 8, doctors: 3, nurses: 6 },
     ward: { acuity: 0.5 }, // 1 nurse per 2 beds; general medicine standard
-    baseDurationMs: {
-        short: 1 * MS_PER_DAY,
-        medium: 3 * MS_PER_DAY,
-        long: 7 * MS_PER_DAY,
-    },
     recovery: {
         complicationMs: 2 * MS_PER_DAY,
         poorMs: 5 * MS_PER_DAY,
@@ -23,7 +18,6 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
     arrivals: {
         meanInterArrivalMs: 1 * MS_PER_DAY,
         urgencyWeights: { routine: 0.6, urgent: 0.3, emergency: 0.1 },
-        durationClassWeights: { short: 0.5, medium: 0.35, long: 0.15 },
     },
     bedManager: {
         roundIntervalMs: MS_PER_DAY,

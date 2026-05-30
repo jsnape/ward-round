@@ -113,7 +113,7 @@ describe("createWardSimulationFromSnapshot", () => {
             const p = createPatient({
                 id,
                 urgency: "routine",
-                durationClass: "short",
+                procedureId: "appendectomy",
                 registeredAt: 0,
             });
             p.state = state;

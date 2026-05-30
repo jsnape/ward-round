@@ -51,7 +51,7 @@ describe("start", () => {
                     createPatient({
                         id,
                         urgency: "routine",
-                        durationClass: "short",
+                        procedureId: "appendectomy",
                         registeredAt: ctx.simTime,
                     }),
                 );

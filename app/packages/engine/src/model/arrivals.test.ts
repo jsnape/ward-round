@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { type Rng, createRng } from "../rng/rng.js";
 import type { ArrivalConfig } from "../config/types.js";
-import {
-    drawDurationClass,
-    drawUrgency,
-    nextInterArrival,
-} from "./arrivals.js";
+import { drawUrgency, nextInterArrival } from "./arrivals.js";
 
 class ScriptedRng implements Rng {
     private i = 0;
@@ -30,7 +26,6 @@ class ScriptedRng implements Rng {
 const cfg: ArrivalConfig = {
     meanInterArrivalMs: 1000,
     urgencyWeights: { routine: 0.6, urgent: 0.3, emergency: 0.1 },
-    durationClassWeights: { short: 0.5, medium: 0.35, long: 0.15 },
 };
 
 describe("nextInterArrival", () => {
@@ -65,10 +60,3 @@ describe("drawUrgency", () => {
     });
 });
 
-describe("drawDurationClass", () => {
-    it("selects the duration-class bucket the draw falls into", () => {
-        expect(drawDurationClass(cfg, new ScriptedRng([0]))).toBe("short");
-        expect(drawDurationClass(cfg, new ScriptedRng([0.6]))).toBe("medium");
-        expect(drawDurationClass(cfg, new ScriptedRng([0.9]))).toBe("long");
-    });
-});

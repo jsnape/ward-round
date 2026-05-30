@@ -57,7 +57,7 @@ describe("transition", () => {
         const patient = createPatient({
             id: "p-1",
             urgency: "routine",
-            durationClass: "short",
+            procedureId: "appendectomy",
             registeredAt: 0,
         });
         transition(patient, S.Scheduled);
@@ -68,7 +68,7 @@ describe("transition", () => {
         const patient = createPatient({
             id: "p-1",
             urgency: "routine",
-            durationClass: "short",
+            procedureId: "appendectomy",
             registeredAt: 0,
         });
         expect(() => transition(patient, S.Discharged)).toThrow();

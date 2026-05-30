@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Rng } from "../rng/rng.js";
-import type { DurationConfig } from "../config/types.js";
-import { recoveryTime, rollOutcome, treatmentDuration } from "./treatment.js";
+import {
+    procedureOutcomeWeights,
+    recoveryTime,
+    rollOutcome,
+    treatmentDuration,
+} from "./treatment.js";
+import { MS_PER_DAY } from "../config/defaults.js";
 
 class ScriptedRng implements Rng {
     private i = 0;
@@ -23,13 +28,27 @@ class ScriptedRng implements Rng {
     }
 }
 
-const base: DurationConfig = { short: 100, medium: 300, long: 700 };
-
 describe("treatmentDuration", () => {
-    it("returns the configured base duration for each class", () => {
-        expect(treatmentDuration("short", base)).toBe(100);
-        expect(treatmentDuration("medium", base)).toBe(300);
-        expect(treatmentDuration("long", base)).toBe(700);
+    it("returns the procedure's baseDurationMs from the catalog", () => {
+        expect(treatmentDuration("appendectomy")).toBe(1 * MS_PER_DAY);
+        expect(treatmentDuration("cholecystectomy")).toBe(2 * MS_PER_DAY);
+        expect(treatmentDuration("hip_replacement")).toBe(7 * MS_PER_DAY);
+    });
+});
+
+describe("procedureOutcomeWeights", () => {
+    const base = { good: 0.7, complication: 0.2, poor: 0.1 };
+
+    it("improves good rate and reduces complication for a minor procedure", () => {
+        const result = procedureOutcomeWeights("colonoscopy", base);
+        expect(result.good).toBeCloseTo(0.75);
+        expect(result.complication).toBeCloseTo(0.15);
+        expect(result.poor).toBeCloseTo(0.1);
+    });
+
+    it("returns base weights unchanged for a major procedure", () => {
+        const result = procedureOutcomeWeights("hip_replacement", base);
+        expect(result).toBe(base);
     });
 });
 

@@ -51,14 +51,12 @@ export type {
 export {
     PatientState,
     URGENCIES,
-    DURATION_CLASSES,
     OUTCOME_TIERS,
     createPatient,
 } from "./state/patient.js";
 export type {
     Patient,
     Urgency,
-    DurationClass,
     OutcomeTier,
 } from "./state/patient.js";
 export {
@@ -83,18 +81,18 @@ export { DomainEmitter } from "./domain/emitter.js";
 export type { DomainEventListener } from "./domain/emitter.js";
 
 // Model (pure domain math)
-export { treatmentDuration, rollOutcome } from "./model/treatment.js";
+export {
+    treatmentDuration,
+    procedureOutcomeWeights,
+    rollOutcome,
+} from "./model/treatment.js";
 export {
     wardNursesNeeded,
     freeStaff,
     canStartTreatment,
     canAddBed,
 } from "./model/staffing.js";
-export {
-    nextInterArrival,
-    drawUrgency,
-    drawDurationClass,
-} from "./model/arrivals.js";
+export { nextInterArrival, drawUrgency } from "./model/arrivals.js";
 export {
     canTransition,
     assertTransition,
@@ -113,5 +111,17 @@ export type {
     WardConfig,
     ArrivalConfig,
     OutcomeWeights,
-    DurationConfig,
 } from "./config/types.js";
+
+// Procedure catalog
+export {
+    PROCEDURE_IDS,
+    PROCEDURE_CATALOG,
+    getProcedure,
+    drawProcedure,
+} from "./config/procedures.js";
+export type {
+    ProcedureId,
+    ProcedureDef,
+    SpecialtyId,
+} from "./config/procedures.js";

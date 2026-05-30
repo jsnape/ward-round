@@ -65,7 +65,7 @@ describe("translator envelope + direct mappings", () => {
                 simTime: 1,
                 patientId: "p-1",
                 urgency: "routine",
-                durationClass: "short",
+                procedureId: "appendectomy",
             },
             {
                 kind: "PatientScheduled",
@@ -78,6 +78,7 @@ describe("translator envelope + direct mappings", () => {
                 kind: "TreatmentStarted",
                 simTime: 4,
                 patientId: "p-1",
+                procedureId: "appendectomy",
                 expectedDuration: 100,
             },
             {

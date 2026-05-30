@@ -51,10 +51,7 @@ function admitOne(patient: Patient, ctx: SimContext): void {
 
     transition(patient, PatientState.InTreatment);
     patient.treatmentStartedAt = ctx.simTime;
-    const duration = treatmentDuration(
-        patient.durationClass,
-        ctx.config.baseDurationMs,
-    );
+    const duration = treatmentDuration(patient.procedureId);
     // Optimistic estimate (assumes an on-time, complication-free recovery) — the
     // bed manager forecasts free beds from this.
     patient.expectedDischargeAt = ctx.simTime + duration;
@@ -62,6 +59,7 @@ function admitOne(patient: Patient, ctx: SimContext): void {
         kind: "TreatmentStarted",
         simTime: ctx.simTime,
         patientId: patient.id,
+        procedureId: patient.procedureId,
         expectedDuration: duration,
     });
     ctx.schedule({

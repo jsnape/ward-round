@@ -64,7 +64,7 @@ describe("replayLog", () => {
             ev("PatientRegistered", {
                 patientId: "p-1",
                 urgency: "routine",
-                durationClass: "short",
+                procedureId: "appendectomy",
             }),
             ev("PatientAdmitted", { patientId: "p-1" }),
             ev("PatientDischarged", {

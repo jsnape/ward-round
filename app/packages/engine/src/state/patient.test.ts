@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
     type Patient,
-    DURATION_CLASSES,
     OUTCOME_TIERS,
     PatientState,
     URGENCIES,
@@ -13,9 +12,8 @@ describe("patient vocabulary", () => {
         expect(OUTCOME_TIERS).toEqual(["good", "complication", "poor"]);
     });
 
-    it("lists urgency and duration classes", () => {
+    it("lists urgency classes", () => {
         expect(URGENCIES).toEqual(["routine", "urgent", "emergency"]);
-        expect(DURATION_CLASSES).toEqual(["short", "medium", "long"]);
     });
 });
 
@@ -24,14 +22,14 @@ describe("createPatient", () => {
         const patient: Patient = createPatient({
             id: "p-1",
             urgency: "routine",
-            durationClass: "medium",
+            procedureId: "colonoscopy",
             registeredAt: 1000,
         });
         expect(patient).toEqual({
             id: "p-1",
             state: PatientState.WaitingList,
             urgency: "routine",
-            durationClass: "medium",
+            procedureId: "colonoscopy",
             registeredAt: 1000,
         });
         expect(patient.scheduledAt).toBeUndefined();

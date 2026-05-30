@@ -97,7 +97,7 @@ export function createTranslator(
                             {
                                 patientId: event.patientId,
                                 urgency: event.urgency,
-                                durationClass: event.durationClass,
+                                procedureId: event.procedureId,
                             },
                         ),
                     );
@@ -130,6 +130,7 @@ export function createTranslator(
                             event.simTime,
                             {
                                 patientId: event.patientId,
+                                procedureId: event.procedureId,
                                 expectedDuration: event.expectedDuration,
                             },
                         ),

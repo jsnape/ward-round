@@ -7,12 +7,12 @@
  */
 import type { EngineConfig } from "../config/types.js";
 import {
-    type DurationClass,
     type OutcomeTier,
     type Patient,
     type Urgency,
     PatientState,
 } from "./patient.js";
+import type { ProcedureId } from "../config/procedures.js";
 import {
     type ResourceState,
     createResourceState,
@@ -49,7 +49,7 @@ export interface PatientView {
     id: string;
     state: PatientState;
     urgency: Urgency;
-    durationClass: DurationClass;
+    procedureId: ProcedureId;
     outcome?: OutcomeTier;
 }
 
@@ -113,7 +113,7 @@ function toView(patient: Patient): PatientView {
         id: patient.id,
         state: patient.state,
         urgency: patient.urgency,
-        durationClass: patient.durationClass,
+        procedureId: patient.procedureId,
     };
     if (patient.outcome !== undefined) {
         view.outcome = patient.outcome;

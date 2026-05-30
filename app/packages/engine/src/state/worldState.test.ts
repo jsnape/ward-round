@@ -32,13 +32,13 @@ describe("projectReadModel", () => {
         const waiting = createPatient({
             id: "p-1",
             urgency: "routine",
-            durationClass: "short",
+            procedureId: "appendectomy",
             registeredAt: 0,
         });
         const discharged = createPatient({
             id: "p-2",
             urgency: "urgent",
-            durationClass: "long",
+            procedureId: "hip_replacement",
             registeredAt: 0,
         });
         discharged.state = PatientState.Discharged;
@@ -86,7 +86,7 @@ describe("toPortable / fromPortable", () => {
         const p = createPatient({
             id: "p-1",
             urgency: "urgent",
-            durationClass: "long",
+            procedureId: "hip_replacement",
             registeredAt: 0,
         });
         p.state = PatientState.InTreatment;

@@ -2,13 +2,10 @@
  * The engine's configuration surface. Every tunable lives here so that balance
  * questions are data, not code. `seed` is the single origin of all stochasticity.
  */
-import type { DurationClass, OutcomeTier, Urgency } from "../state/patient.js";
+import type { OutcomeTier, Urgency } from "../state/patient.js";
 
 /** Base outcome-tier probabilities for a treatment (need not sum to 1). */
 export type OutcomeWeights = Record<OutcomeTier, number>;
-
-/** Base treatment durations (integer ms of simTime) per duration class. */
-export type DurationConfig = Record<DurationClass, number>;
 
 /**
  * Extra recovery time (ms) a patient occupies a bed *after* treatment completes,
@@ -35,7 +32,6 @@ export interface ArrivalConfig {
     /** Mean inter-arrival time (ms) for the exponential arrival process. */
     meanInterArrivalMs: number;
     urgencyWeights: Record<Urgency, number>;
-    durationClassWeights: Record<DurationClass, number>;
 }
 
 /** Initial resource capacities (plain integers; the engine never assumes more). */
@@ -67,7 +63,6 @@ export interface EngineConfig {
     seed: number;
     resources: ResourceConfig;
     ward: WardConfig;
-    baseDurationMs: DurationConfig;
     recovery: RecoveryConfig;
     outcomeWeights: OutcomeWeights;
     arrivals: ArrivalConfig;

@@ -52,7 +52,7 @@ function addPatient(
     const patient = createPatient({
         id,
         urgency: "routine",
-        durationClass: "short",
+        procedureId: "appendectomy",
         registeredAt: 0,
     });
     patient.state = state;
