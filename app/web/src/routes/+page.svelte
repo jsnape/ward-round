@@ -236,8 +236,8 @@
         <!-- Score / budget -->
         <div class="rounded-lg border border-slate-200 bg-white p-4">
             <h2 class="text-sm font-medium text-slate-500">Budget</h2>
-            <p data-testid="patients-treated" class="mt-1 text-xl font-bold text-emerald-600">
-                {snap.score.patientsTreated} treated
+            <p class="mt-1 text-xl font-bold text-emerald-600">
+                <span data-testid="patients-treated">{snap.score.patientsTreated}</span> treated
             </p>
             <p class="text-xs text-slate-400">
                 <span data-testid="score-total">{snap.score.totalScore}</span> pts ·
