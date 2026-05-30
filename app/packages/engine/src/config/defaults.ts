@@ -16,13 +16,13 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
     },
     outcomeWeights: { good: 0.7, complication: 0.2, poor: 0.1 },
     arrivals: {
-        meanInterArrivalMs: 1 * MS_PER_DAY,
+        meanInterArrivalMs: 0.8 * MS_PER_DAY, // 25% higher pressure than Stage 1
         urgencyWeights: { routine: 0.6, urgent: 0.3, emergency: 0.1 },
     },
     bedManager: {
         roundIntervalMs: MS_PER_DAY,
         firstRoundAt: 8 * 60 * 60 * 1000, // 08:00 on day 0
-        maxWaitMs: 2 * MS_PER_DAY,
-        forecastHorizonMs: 1 * MS_PER_DAY,
+        maxWaitMs: 3 * MS_PER_DAY,       // more tension before cancellation
+        forecastHorizonMs: 0.5 * MS_PER_DAY, // more pessimistic → more cancellations
     },
 };

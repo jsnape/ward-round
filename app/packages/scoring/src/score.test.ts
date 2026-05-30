@@ -126,6 +126,6 @@ describe("scoreState", () => {
     });
 
     it("uses the default config when none is given", () => {
-        expect(scoreState(model([])).remaining).toBe(1_000_000);
+        expect(scoreState(model([])).remaining).toBe(60_000);
     });
 });

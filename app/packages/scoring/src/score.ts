@@ -42,8 +42,8 @@ export interface Score {
 }
 
 export const DEFAULT_SCORING_CONFIG: ScoringConfig = {
-    budget: 1_000_000,
-    paymentPerDischarge: 1_000,
+    budget: 60_000,
+    paymentPerDischarge: 2_500,
     outcomeScore: { good: 2, complication: 0, poor: -1 },
     dailyDoctorCost: 500,
     dailyNurseCost: 200,
