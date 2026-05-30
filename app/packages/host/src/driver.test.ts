@@ -41,6 +41,7 @@ class FakeSim implements Simulation {
             doctors: 1,
             nurses: 1,
             waitingListLength: 0,
+            inTreatmentCount: 0,
             patients: [],
             counters: {
                 registered: 0,

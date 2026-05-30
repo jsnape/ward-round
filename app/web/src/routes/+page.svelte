@@ -9,6 +9,8 @@
         UserRound,
     } from "@lucide/svelte";
     import { SPEED_PRESETS } from "@ward-round/host";
+
+    const SPEED_LABELS: Record<number, string> = { 1: "Live", 4: "Daily", 20: "Weekly", 60: "Turbo" };
     import { getProcedure } from "@ward-round/engine";
     import { Game, type GameSnapshot } from "$lib/game";
     import { formatSimTime } from "$lib/format";
@@ -137,7 +139,7 @@
                             : 'bg-white text-slate-700 hover:bg-slate-100'}"
                         onclick={() => setSpeed(preset)}
                     >
-                        {preset}×
+                        {SPEED_LABELS[preset] ?? `${preset}×`}
                     </button>
                 {/each}
             </div>
@@ -216,7 +218,7 @@
             <p data-testid="nurses" class="mt-1 text-2xl font-bold">
                 {snap.state.nurses}
             </p>
-            <p class="text-xs text-slate-400">
+            <p data-testid="nurse-split" class="text-xs text-slate-400">
                 {nurseSplit.ward} ward · {nurseSplit.procedures} procs · {nurseSplit.free} free
             </p>
             <div class="mt-2 flex gap-2 text-sm">
@@ -279,9 +281,17 @@
         <!-- Waiting list -->
         <div class="rounded-lg border border-slate-200 bg-white p-4">
             <h2 class="mb-3 flex items-center justify-between text-sm font-medium text-slate-500">
-                <span>
+                <span class="flex items-center gap-2">
                     Waiting list
                     (<span data-testid="waiting-count">{snap.state.waitingListLength}</span>)
+                    {#if snap.state.waitingListLength > 0}
+                        <span
+                            data-testid="queue-trend"
+                            class="text-xs font-normal {snap.queueGrowing ? 'text-red-500' : 'text-emerald-600'}"
+                        >
+                            {snap.queueGrowing ? "▲ growing" : "▼ stable"}
+                        </span>
+                    {/if}
                 </span>
                 {#if snap.state.waitingListLength > waitingPatients.slice(0, 10).length}
                     <span class="text-xs text-amber-600">

@@ -64,6 +64,7 @@ export interface WorldStateReadModel {
     doctors: number;
     nurses: number;
     waitingListLength: number;
+    inTreatmentCount: number;
     patients: readonly PatientView[];
     counters: WorldCounters;
 }
@@ -131,9 +132,12 @@ function toView(patient: Patient): PatientView {
 export function projectReadModel(world: WorldState): WorldStateReadModel {
     const patients: PatientView[] = [];
     let waitingListLength = 0;
+    let inTreatmentCount = 0;
     for (const patient of world.patients.values()) {
         if (patient.state === PatientState.WaitingList) {
             waitingListLength += 1;
+        } else if (patient.state === PatientState.InTreatment) {
+            inTreatmentCount += 1;
         }
         patients.push(toView(patient));
     }
@@ -147,6 +151,7 @@ export function projectReadModel(world: WorldState): WorldStateReadModel {
         doctors: world.resources.doctors.headcount,
         nurses: world.resources.nurses.headcount,
         waitingListLength,
+        inTreatmentCount,
         patients,
         counters: { ...world.counters },
     };

@@ -63,4 +63,26 @@ test.describe("Ward Round", () => {
             String(before + 1),
         );
     });
+
+    test("shows inpatient cards after patients are admitted", async ({
+        page,
+    }) => {
+        await page.goto("/");
+        await page.getByTestId("speed-60").click();
+        await expect
+            .poll(
+                async () =>
+                    await page.getByTestId("inpatient-card").count(),
+                { timeout: 20_000 },
+            )
+            .toBeGreaterThan(0);
+    });
+
+    test("bottleneck badge and nurse split are visible on page load", async ({
+        page,
+    }) => {
+        await page.goto("/");
+        await expect(page.getByTestId("bottleneck-badge")).toBeVisible();
+        await expect(page.getByTestId("nurse-split")).toBeVisible();
+    });
 });

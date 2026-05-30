@@ -30,6 +30,7 @@ function model(
         doctors: opts.doctors ?? 3,
         nurses: opts.nurses ?? 5,
         waitingListLength: 0,
+        inTreatmentCount: 0,
         patients,
         counters: { registered: 0, admitted: 0, discharged: 0, cancelled: 0 },
     };

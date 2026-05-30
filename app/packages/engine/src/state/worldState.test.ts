@@ -56,7 +56,23 @@ describe("projectReadModel", () => {
         expect(view.doctors).toBe(3);
         expect(view.nurses).toBe(6);
         expect(view.waitingListLength).toBe(1);
+        expect(view.inTreatmentCount).toBe(0); // seeded has no InTreatment patients
         expect(view.counters.discharged).toBe(1);
+    });
+
+    it("counts in-treatment patients correctly", () => {
+        const world = createWorldState(DEFAULT_ENGINE_CONFIG);
+        const p1 = createPatient({ id: "t1", urgency: "urgent", procedureId: "appendectomy", registeredAt: 0 });
+        const p2 = createPatient({ id: "t2", urgency: "urgent", procedureId: "appendectomy", registeredAt: 0 });
+        const p3 = createPatient({ id: "w1", urgency: "routine", procedureId: "colonoscopy", registeredAt: 0 });
+        p1.state = PatientState.InTreatment;
+        p2.state = PatientState.InTreatment;
+        world.patients.set(p1.id, p1);
+        world.patients.set(p2.id, p2);
+        world.patients.set(p3.id, p3);
+        const view = projectReadModel(world);
+        expect(view.inTreatmentCount).toBe(2);
+        expect(view.waitingListLength).toBe(1);
     });
 
     it("includes outcome only when present", () => {

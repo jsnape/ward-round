@@ -36,6 +36,7 @@ export interface GameSnapshot {
     bottleneck: BottleneckAnalysis;
     throughputPerDay: number;
     canAddBed: boolean;
+    queueGrowing: boolean;
 }
 
 export class Game {
@@ -43,6 +44,7 @@ export class Game {
     private readonly driver: SimDriver;
     private readonly sink = new InMemorySink();
     private readonly config: EngineConfig;
+    private prevWaitingListLength = 0;
 
     constructor(config: EngineConfig = DEFAULT_ENGINE_CONFIG) {
         this.config = config;
@@ -67,7 +69,9 @@ export class Game {
     /** Advance by a real-time delta (ms) and return the latest snapshot. */
     tick(wallDeltaMs: number): GameSnapshot {
         this.driver.tick(wallDeltaMs);
-        return this.snapshot();
+        const snap = this.snapshot();
+        this.prevWaitingListLength = snap.state.waitingListLength;
+        return snap;
     }
 
     snapshot(): GameSnapshot {
@@ -88,6 +92,8 @@ export class Game {
                 state.nurses,
                 this.config.ward.acuity,
             ),
+            queueGrowing:
+                state.waitingListLength > this.prevWaitingListLength,
         };
     }
 

@@ -52,7 +52,7 @@
     };
 </script>
 
-<div class="rounded border border-slate-200 bg-white p-3 text-sm">
+<div data-testid="inpatient-card" class="rounded border border-slate-200 bg-white p-3 text-sm">
     <div class="flex items-start justify-between gap-2">
         <div>
             <span class="font-mono font-semibold text-slate-800">{shortId}</span>

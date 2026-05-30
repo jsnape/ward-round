@@ -46,6 +46,7 @@ function makeState(
         doctors,
         nurses,
         waitingListLength,
+        inTreatmentCount,
         patients,
         counters: { registered: 0, admitted: 0, discharged: 0, cancelled: 0 },
     };
