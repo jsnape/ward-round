@@ -14,7 +14,7 @@ describe("createWorldState", () => {
         const world = createWorldState(DEFAULT_ENGINE_CONFIG);
         expect(world.patients.size).toBe(0);
         expect(world.simTime).toBe(0);
-        expect(world.resources.beds).toEqual({ capacity: 10, occupied: 0 });
+        expect(world.resources.beds).toEqual({ capacity: 8, occupied: 0 });
         expect(world.counters).toEqual({
             registered: 0,
             admitted: 0,
@@ -52,9 +52,9 @@ describe("projectReadModel", () => {
     it("projects beds, staffing, queue length, and counters", () => {
         const view = projectReadModel(seeded());
         expect(view.simTime).toBe(500);
-        expect(view.beds).toEqual({ capacity: 10, occupied: 3, free: 7 });
+        expect(view.beds).toEqual({ capacity: 8, occupied: 3, free: 5 });
         expect(view.doctors).toBe(3);
-        expect(view.nurses).toBe(5);
+        expect(view.nurses).toBe(6);
         expect(view.waitingListLength).toBe(1);
         expect(view.counters.discharged).toBe(1);
     });

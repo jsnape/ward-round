@@ -83,12 +83,13 @@ export { DomainEmitter } from "./domain/emitter.js";
 export type { DomainEventListener } from "./domain/emitter.js";
 
 // Model (pure domain math)
+export { treatmentDuration, rollOutcome } from "./model/treatment.js";
 export {
-    throughputMultiplier,
-    isStaffed,
-    treatmentDuration,
-    rollOutcome,
-} from "./model/treatment.js";
+    wardNursesNeeded,
+    freeStaff,
+    canStartTreatment,
+    canAddBed,
+} from "./model/staffing.js";
 export {
     nextInterArrival,
     drawUrgency,
@@ -109,7 +110,7 @@ export { DEFAULT_ENGINE_CONFIG, MS_PER_DAY } from "./config/defaults.js";
 export type {
     EngineConfig,
     ResourceConfig,
-    StaffingConfig,
+    WardConfig,
     ArrivalConfig,
     OutcomeWeights,
     DurationConfig,

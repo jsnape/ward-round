@@ -94,7 +94,7 @@ describe("scenario: capacity relieves the queue", () => {
     it("ample beds keep the queue bounded and discharge patients", () => {
         const { sim } = collect(
             cfg({
-                resources: { beds: 200, doctors: 20, nurses: 40 },
+                resources: { beds: 200, doctors: 20, nurses: 150 },
                 arrivals: { meanInterArrivalMs: MS_PER_DAY / 10 },
                 bedManager: noCancellations,
             }),
@@ -164,7 +164,7 @@ describe("scenario: outcome distribution", () => {
         () => {
             const config = cfg({
                 seed: 99,
-                resources: { beds: 200, doctors: 50, nurses: 80 },
+                resources: { beds: 200, doctors: 50, nurses: 200 },
                 arrivals: { meanInterArrivalMs: MS_PER_DAY / 50 },
                 bedManager: noCancellations,
             });

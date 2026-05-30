@@ -20,14 +20,14 @@ export interface RecoveryConfig {
     poorMs: number;
 }
 
-/** Staffing floors and the soft throughput bonus per extra staff member. */
-export interface StaffingConfig {
-    /** Minimum doctors for treatment to progress at all (hard floor). */
-    minDoctors: number;
-    /** Minimum nurses for treatment to progress at all (hard floor). */
-    minNurses: number;
-    /** Fractional throughput gain per staff member above the floor. */
-    softBonusPerExtra: number;
+/**
+ * Ward clinical environment. Acuity is the minimum nurse-to-bed ratio: the
+ * number of nurses permanently consumed by ward-coverage duties per open bed.
+ * Beds cannot be added unless nurse headcount covers the new acuity load.
+ */
+export interface WardConfig {
+    /** Nurses required per bed (e.g. 0.5 for general medicine = 1 per 2 beds). */
+    acuity: number;
 }
 
 /** The arrival process and the attribute mix of arriving patients. */
@@ -66,7 +66,7 @@ export interface BedManagerConfig {
 export interface EngineConfig {
     seed: number;
     resources: ResourceConfig;
-    staffing: StaffingConfig;
+    ward: WardConfig;
     baseDurationMs: DurationConfig;
     recovery: RecoveryConfig;
     outcomeWeights: OutcomeWeights;

@@ -8,8 +8,8 @@ export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
     seed: 1,
-    resources: { beds: 10, doctors: 3, nurses: 5 },
-    staffing: { minDoctors: 1, minNurses: 1, softBonusPerExtra: 0.1 },
+    resources: { beds: 8, doctors: 3, nurses: 6 },
+    ward: { acuity: 0.5 }, // 1 nurse per 2 beds; general medicine standard
     baseDurationMs: {
         short: 1 * MS_PER_DAY,
         medium: 3 * MS_PER_DAY,

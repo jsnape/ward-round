@@ -9,13 +9,21 @@ enforced by lint/CI.
 
 **Ward Round** — a hospital-ward management simulation. Stage 1 is a headless
 discrete-event simulation (DES) of a single NHS elective general medicine ward,
-plus a minimal SvelteKit UI.
+plus a minimal SvelteKit UI. Stage 2 is an engagement overhaul: named procedures,
+nurse-acuity bed coupling, per-treatment staff allocation, daily salary costs,
+slower simulation pace, and a richer UI.
 
 Authoritative documents (read in this order):
 
+Stage 1 (complete):
 - [docs/STAGE-1-SPEC.md](docs/STAGE-1-SPEC.md) — *what* Stage 1 is and *why*.
 - [docs/STAGE-1-DESIGN.md](docs/STAGE-1-DESIGN.md) — *how* it is built (architecture).
 - [docs/STAGE-1-TODO.md](docs/STAGE-1-TODO.md) — the section-by-section build plan.
+
+Stage 2 (in progress):
+- [docs/STAGE-2-SPEC.md](docs/STAGE-2-SPEC.md) — *what* Stage 2 changes and *why*.
+- [docs/STAGE-2-DESIGN.md](docs/STAGE-2-DESIGN.md) — *how* Stage 2 is built.
+- [docs/STAGE-2-TODO.md](docs/STAGE-2-TODO.md) — the section-by-section build plan.
 
 When in doubt, the spec wins on behaviour, the design wins on structure.
 

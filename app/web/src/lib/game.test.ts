@@ -8,7 +8,7 @@ describe("Game", () => {
         const snap = game.snapshot();
         expect(snap.paused).toBe(false);
         expect(snap.speed).toBe(1);
-        expect(snap.state.beds.capacity).toBe(10);
+        expect(snap.state.beds.capacity).toBe(8);
         expect(snap.businessEventCount).toBeGreaterThanOrEqual(1); // GameStarted
     });
 
