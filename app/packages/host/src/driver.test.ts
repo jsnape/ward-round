@@ -126,7 +126,7 @@ describe("SimDriver", () => {
     });
 
     it("offers the documented speed presets", () => {
-        expect(SPEED_PRESETS).toEqual([1, 2, 5]);
+        expect(SPEED_PRESETS).toEqual([1, 4, 20, 60]);
     });
 
     it("passes subscribe through to the simulation", () => {

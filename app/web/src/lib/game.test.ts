@@ -14,7 +14,8 @@ describe("Game", () => {
 
     it("advances the simulation and accrues score over time", () => {
         const game = new Game();
-        // Drive ~60 sim-days worth of wall time in chunks.
+        game.setSpeed(60); // Turbo: 1 real-minute = 1 sim-day × 60 = 1 sim-second per real-ms
+        // Drive ~50 sim-days worth of wall time in chunks.
         for (let i = 0; i < 200; i++) {
             game.tick(250);
         }

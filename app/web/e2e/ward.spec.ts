@@ -9,7 +9,7 @@ test.describe("Ward Round", () => {
             page.getByRole("heading", { name: "Ward Round" }),
         ).toBeVisible();
         await expect(page.getByTestId("clock")).toBeVisible();
-        await page.getByTestId("speed-5").click();
+        await page.getByTestId("speed-60").click();
         await expect
             .poll(
                 async () =>
@@ -21,7 +21,7 @@ test.describe("Ward Round", () => {
 
     test("treats patients so the score updates", async ({ page }) => {
         await page.goto("/");
-        await page.getByTestId("speed-5").click();
+        await page.getByTestId("speed-60").click();
         await expect
             .poll(
                 async () =>
@@ -37,7 +37,7 @@ test.describe("Ward Round", () => {
 
     test("pauses and resumes the clock", async ({ page }) => {
         await page.goto("/");
-        await page.getByTestId("speed-5").click();
+        await page.getByTestId("speed-60").click();
         await page.getByTestId("pause-toggle").click(); // pause
         const frozen = await page.getByTestId("clock").textContent();
         await page.waitForTimeout(1500);
