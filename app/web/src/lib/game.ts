@@ -10,6 +10,7 @@ import {
     type WorldStateReadModel,
     DEFAULT_ENGINE_CONFIG,
     createWardSimulation,
+    canAddBed as checkCanAddBed,
 } from "@ward-round/engine";
 import { SimDriver } from "@ward-round/host";
 import {
@@ -19,8 +20,11 @@ import {
 } from "@ward-round/contract";
 import {
     type Score,
+    type BottleneckAnalysis,
     DEFAULT_SCORING_CONFIG,
     scoreState,
+    analyseBottleneck,
+    computeThroughputRate,
 } from "@ward-round/scoring";
 
 export interface GameSnapshot {
@@ -29,14 +33,19 @@ export interface GameSnapshot {
     businessEventCount: number;
     paused: boolean;
     speed: number;
+    bottleneck: BottleneckAnalysis;
+    throughputPerDay: number;
+    canAddBed: boolean;
 }
 
 export class Game {
     private readonly sim: Simulation;
     private readonly driver: SimDriver;
     private readonly sink = new InMemorySink();
+    private readonly config: EngineConfig;
 
     constructor(config: EngineConfig = DEFAULT_ENGINE_CONFIG) {
+        this.config = config;
         this.sim = createWardSimulation(config);
         this.driver = new SimDriver(this.sim);
         const translator = createTranslator(
@@ -69,6 +78,16 @@ export class Game {
             businessEventCount: this.sink.events.length,
             paused: this.driver.paused,
             speed: this.driver.speed,
+            bottleneck: analyseBottleneck(state, this.config.ward.acuity),
+            throughputPerDay: computeThroughputRate(
+                state.counters.discharged,
+                state.simTime,
+            ),
+            canAddBed: checkCanAddBed(
+                state.beds.capacity,
+                state.nurses,
+                this.config.ward.acuity,
+            ),
         };
     }
 

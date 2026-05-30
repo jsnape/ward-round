@@ -43,6 +43,7 @@ const discharged = (
     state: PatientState.Discharged,
     urgency: "routine",
     procedureId: "appendectomy",
+    registeredAt: 0,
     ...(outcome === undefined ? {} : { outcome }),
 });
 
@@ -84,12 +85,14 @@ describe("scoreState", () => {
                     state: PatientState.Cancelled,
                     urgency: "routine",
                     procedureId: "appendectomy",
+                    registeredAt: 0,
                 },
                 {
                     id: "t",
                     state: PatientState.InTreatment,
                     urgency: "urgent",
                     procedureId: "hip_replacement",
+                    registeredAt: 0,
                 },
                 discharged("d", "good"),
             ]),

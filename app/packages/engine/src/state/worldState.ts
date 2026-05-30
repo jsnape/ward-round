@@ -50,6 +50,10 @@ export interface PatientView {
     state: PatientState;
     urgency: Urgency;
     procedureId: ProcedureId;
+    registeredAt: number;
+    admittedAt?: number;
+    treatmentStartedAt?: number;
+    expectedDischargeAt?: number;
     outcome?: OutcomeTier;
 }
 
@@ -114,10 +118,12 @@ function toView(patient: Patient): PatientView {
         state: patient.state,
         urgency: patient.urgency,
         procedureId: patient.procedureId,
+        registeredAt: patient.registeredAt,
     };
-    if (patient.outcome !== undefined) {
-        view.outcome = patient.outcome;
-    }
+    if (patient.admittedAt !== undefined) view.admittedAt = patient.admittedAt;
+    if (patient.treatmentStartedAt !== undefined) view.treatmentStartedAt = patient.treatmentStartedAt;
+    if (patient.expectedDischargeAt !== undefined) view.expectedDischargeAt = patient.expectedDischargeAt;
+    if (patient.outcome !== undefined) view.outcome = patient.outcome;
     return view;
 }
 

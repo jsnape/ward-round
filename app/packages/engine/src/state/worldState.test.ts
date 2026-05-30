@@ -67,6 +67,40 @@ describe("projectReadModel", () => {
         expect(p2?.outcome).toBe("good");
     });
 
+    it("forwards timestamp fields when set, leaves absent when not", () => {
+        const world = createWorldState(DEFAULT_ENGINE_CONFIG);
+        const p = createPatient({
+            id: "p-tx",
+            urgency: "urgent",
+            procedureId: "appendectomy",
+            registeredAt: 100,
+        });
+        p.admittedAt = 200;
+        p.treatmentStartedAt = 300;
+        p.expectedDischargeAt = 1000;
+        world.patients.set(p.id, p);
+
+        const view = projectReadModel(world);
+        const pv = view.patients.find((x) => x.id === "p-tx");
+        expect(pv?.registeredAt).toBe(100);
+        expect(pv?.admittedAt).toBe(200);
+        expect(pv?.treatmentStartedAt).toBe(300);
+        expect(pv?.expectedDischargeAt).toBe(1000);
+
+        // Patient without timestamps
+        const plain = createPatient({
+            id: "p-plain",
+            urgency: "routine",
+            procedureId: "colonoscopy",
+            registeredAt: 0,
+        });
+        world.patients.set(plain.id, plain);
+        const pv2 = projectReadModel(world).patients.find((x) => x.id === "p-plain");
+        expect(pv2?.admittedAt).toBeUndefined();
+        expect(pv2?.treatmentStartedAt).toBeUndefined();
+        expect(pv2?.expectedDischargeAt).toBeUndefined();
+    });
+
     it("returns a detached snapshot (mutating it does not affect the world)", () => {
         const world = seeded();
         const view = projectReadModel(world);
