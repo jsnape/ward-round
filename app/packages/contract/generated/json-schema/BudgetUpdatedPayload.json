@@ -1,0 +1,27 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "BudgetUpdatedPayload.json",
+    "type": "object",
+    "properties": {
+        "spent": {
+            "type": "integer"
+        },
+        "remaining": {
+            "type": "integer"
+        },
+        "patientsTreated": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+        },
+        "outcomeScore": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "spent",
+        "remaining",
+        "patientsTreated",
+        "outcomeScore"
+    ]
+}

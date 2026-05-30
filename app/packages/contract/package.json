@@ -10,9 +10,15 @@
     }
   },
   "scripts": {
-    "gen": "node -e \"console.log('contract: TypeSpec emit is wired in §8')\""
+    "gen": "tsp compile schema && json2ts -i generated/json-schema/BusinessEvent.json --cwd generated/json-schema --additionalProperties false -o generated/businessEvents.ts",
+    "gen:check": "npm run gen && git diff --exit-code packages/contract/generated"
   },
   "dependencies": {
     "@ward-round/engine": "*"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "^1.12.0",
+    "@typespec/json-schema": "^1.12.0",
+    "json-schema-to-typescript": "^15.0.4"
   }
 }

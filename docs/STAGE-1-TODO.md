@@ -24,7 +24,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §5 — Engine: DES scheduler & Simulation orchestration
 - [x] §6 — Engine: handlers (the lifecycle glue)
 - [x] §7 — Engine: acceptance scenarios & determinism
-- [ ] §8 — Contract: schema/IDL, envelope & translator
+- [x] §8 — Contract: schema/IDL, envelope & translator
 - [ ] §9 — Contract: sinks, save format & migration
 - [ ] §10 — Scoring package
 - [ ] §11 — Host package (sim driver)
@@ -403,8 +403,9 @@ validates against, plus the determinism regression net. These are the engine's
 
 - **Contract IDL:** TypeSpec, in `packages/contract/schema/`, emitting TS types
   (and later Go/C#). ✅ (chosen)
-- Confirm the business-event `type` list from [STAGE-1-SPEC.md §8.3](STAGE-1-SPEC.md)
-  is complete. [default: as listed, incl. `PatientScheduled`]
+- Business-event `type` list: all of [STAGE-1-SPEC.md §8.3](STAGE-1-SPEC.md)
+  modelled (incl. `PatientScheduled`). `WardOpened`/`StaffHired` exist in the
+  schema for forward-compat but have no Stage 1 domain source yet. ✅
 
 ### Description
 
@@ -428,15 +429,18 @@ Generates UUIDs for `eventId`/`gameId`.
 
 ### Tasks
 
-- [ ] Add TypeSpec toolchain (`@typespec/compiler` + emitters) to the contract package.
-- [ ] `packages/contract/schema/`: TypeSpec models for the envelope + all
-      business-event types.
-- [ ] Wire TS-type emission into the build (`npm run gen` / prebuild); commit the
-      generated output and add a CI staleness check.
-- [ ] `SCHEMA_VERSION` constant + re-export of generated envelope types.
-- [ ] `translator.ts`: domain→business mapping + derived state + UUID generation.
-- [ ] Unit tests: per-event mapping, derived events, version/envelope shape,
-      generated-types-match-schema.
+- [x] Add TypeSpec toolchain (`@typespec/compiler` + `@typespec/json-schema` +
+      `json-schema-to-typescript`) to the contract package.
+- [x] `schema/main.tsp`: TypeSpec models for the envelope + all business-event
+      types (`safeint` for numeric fields → TS `number`).
+- [x] `npm run gen`: TypeSpec → JSON Schema (`generated/json-schema/`) →
+      `generated/businessEvents.ts`. Output committed; `gen:check` staleness
+      script + CI step added. `generated/` excluded from lint/prettier/coverage.
+- [x] `SCHEMA_VERSION` (`version.ts`) + barrel re-exports the generated `BusinessEvent`.
+- [x] `translator.ts`: domain→business mapping + derived `BudgetUpdated` running
+      tally + injectable UUID/clock (defaults via `globalThis.crypto`).
+- [x] Unit tests: per-event mapping, ignored internal events, derived BudgetUpdated,
+      envelope shape, default id/clock. (6 contract tests; 100%, gen reproducible.)
 
 ---
 

@@ -1,0 +1,41 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "GameStarted.json",
+    "type": "object",
+    "properties": {
+        "schemaVersion": {
+            "type": "string"
+        },
+        "eventId": {
+            "type": "string"
+        },
+        "gameId": {
+            "type": "string"
+        },
+        "simTime": {
+            "type": "integer",
+            "description": "Simulation time in integer milliseconds since the game epoch."
+        },
+        "wallTime": {
+            "type": "string",
+            "description": "ISO-8601 real timestamp of emission."
+        },
+        "type": {
+            "type": "string",
+            "const": "GameStarted"
+        },
+        "payload": {
+            "$ref": "GameStartedPayload.json"
+        }
+    },
+    "required": [
+        "schemaVersion",
+        "eventId",
+        "gameId",
+        "simTime",
+        "wallTime",
+        "type",
+        "payload"
+    ],
+    "description": "The common envelope shared by every business event."
+}

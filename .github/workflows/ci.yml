@@ -25,6 +25,7 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
       - run: npm ci
+      - run: npm run -w @ward-round/contract gen:check
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

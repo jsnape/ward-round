@@ -53,7 +53,7 @@ export default defineConfig({
             provider: "v8",
             all: true,
             include: ["packages/*/src/**/*.ts", "web/src/lib/**/*.ts"],
-            exclude: ["**/*.test.ts"],
+            exclude: ["**/*.test.ts", "**/generated/**"],
             reporter: ["text", "html"],
             thresholds: {
                 lines: 100,

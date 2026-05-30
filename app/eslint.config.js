@@ -11,6 +11,7 @@ export default tseslint.config(
             "**/build/**",
             "**/.svelte-kit/**",
             "**/coverage/**",
+            "**/generated/**",
             "**/node_modules/**",
             "**/*.svelte",
         ],
