@@ -40,8 +40,19 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: app/package-lock.json
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npm ci # postinstall generates the contract types from TypeSpec
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('app/package-lock.json') }}
+      # On a cache hit the browser binary is restored; only the system libraries
+      # (apt packages, not cacheable) need installing.
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
       - run: npm run test:e2e
 
   cross-platform:
