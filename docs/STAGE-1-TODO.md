@@ -28,7 +28,7 @@ and [STAGE-1-SPEC.md](STAGE-1-SPEC.md).
 - [x] §9 — Contract: sinks, save format & migration
 - [x] §10 — Scoring package
 - [x] §11 — Host package (sim driver)
-- [ ] §12 — Web app: UI
+- [x] §12 — Web app: UI
 - [ ] §13 — Web app: e2e & final wiring
 
 ---
@@ -559,9 +559,9 @@ targets the DOM. Pure arithmetic so it tests to 100% without a browser.
 
 ### ❓ Outstanding questions
 
-- **(blocking)** Any layout/wireframe preference, or implementer's discretion for
-  the minimal legible UI? [default: discretion, following spec §12]
-- Include the save/load button in Stage 1 (stretch from §9)? [default: no]
+- Layout: implementer's discretion, minimal legible UI per spec §12. ✅
+- Save/load button: not included in Stage 1 (the save format/load path exist and
+  are tested at §9; no UI surface). ✅
 
 ### Description
 
@@ -581,13 +581,16 @@ in the packages.
 
 ### Tasks
 
-- [ ] App shell + Tailwind + lucide-svelte setup verified.
-- [ ] rAF loop wiring `host` → runes reactive state.
-- [ ] Components: waiting list, beds, queue length, clock, score readout.
-- [ ] Controls: pause/speed, bed dial, staff dials.
-- [ ] Subscribe contract translator to local business stream (console/in-memory).
-- [ ] Component tests for dials/readouts.
-- [ ] (stretch) Save/load button.
+- [x] `web/src/lib/game.ts`: framework-agnostic `Game` controller wiring engine +
+      host driver + scoring + contract translator (InMemorySink). 100% covered.
+- [x] rAF loop in `+page.svelte` feeding wall-clock deltas → runes `$state` snapshot.
+- [x] UI: clock, waiting list, bed grid (occupied/free), counters, NHS score readout.
+- [x] Controls: pause/resume, speed presets (1/2/5), live bed/doctor/nurse dials
+      (engine gained `setBeds/setDoctors/setNurses` + an admit-sweep hook).
+- [x] Contract translator subscribed to the live domain stream (InMemorySink).
+- [x] `game.test.ts` covers the controller (web/src/lib at 100%, ≥80% gate).
+- [ ] (stretch) Save/load button — deferred.
+- [x] svelte-check clean; build succeeds; `.svelte` excluded from coverage/eslint.
 
 ---
 

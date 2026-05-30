@@ -52,6 +52,32 @@ describe("createWardSimulation", () => {
         expect(a.sim.state.counters).toEqual(b.sim.state.counters);
         expect(a.emitted.length).toBe(b.emitted.length);
     });
+
+    it("admits waiting patients when beds are added (live reallocation)", () => {
+        // One bed, high arrival: a queue builds with no cancellations.
+        const sim = createWardSimulation({
+            ...DEFAULT_ENGINE_CONFIG,
+            seed: 5,
+            resources: { beds: 1, doctors: 5, nurses: 8 },
+            arrivals: {
+                ...DEFAULT_ENGINE_CONFIG.arrivals,
+                meanInterArrivalMs: MS_PER_DAY / 10,
+            },
+            bedManager: {
+                ...DEFAULT_ENGINE_CONFIG.bedManager,
+                firstRoundAt: 1_000_000 * MS_PER_DAY,
+            },
+        });
+        sim.start();
+        sim.runUntil(20 * MS_PER_DAY);
+        const queued = sim.state.waitingListLength;
+        expect(queued).toBeGreaterThan(1);
+
+        // Add beds: the sweep should immediately pull waiters off the list.
+        sim.setBeds(20);
+        expect(sim.state.waitingListLength).toBeLessThan(queued);
+        expect(sim.state.beds.occupied).toBeGreaterThan(1);
+    });
 });
 
 describe("createWardSimulationFromSnapshot", () => {

@@ -67,6 +67,9 @@ class FakeSim implements Simulation {
             patients: [],
         };
     }
+    setBeds(): void {}
+    setDoctors(): void {}
+    setNurses(): void {}
 }
 
 describe("SimDriver", () => {

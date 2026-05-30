@@ -178,6 +178,48 @@ describe("run", () => {
     });
 });
 
+describe("capacity controls", () => {
+    it("sets bed capacity but never below the occupied count", () => {
+        const sim = createSimulation(cfg);
+        sim.setBeds(20);
+        expect(sim.state.beds.capacity).toBe(20);
+        // Cannot drop below occupied (0 here), and rejects nonsense.
+        sim.setBeds(0);
+        expect(sim.state.beds.capacity).toBe(0);
+    });
+
+    it("sets staff headcount and emits StaffChanged", () => {
+        const sim = createSimulation(cfg);
+        const seen: string[] = [];
+        sim.subscribe((e) => {
+            if (e.kind === "StaffChanged") seen.push(`${e.role}:${e.count}`);
+        });
+        sim.setDoctors(7);
+        sim.setNurses(9);
+        expect(sim.state.doctors).toBe(7);
+        expect(sim.state.nurses).toBe(9);
+        expect(seen).toEqual(["doctor:7", "nurse:9"]);
+    });
+
+    it("rejects non-integer or negative capacities", () => {
+        const sim = createSimulation(cfg);
+        expect(() => sim.setBeds(1.5)).toThrow(RangeError);
+        expect(() => sim.setDoctors(-1)).toThrow(RangeError);
+        expect(() => sim.setNurses(-2)).toThrow(RangeError);
+    });
+
+    it("invokes the onResourcesChanged hook", () => {
+        let calls = 0;
+        const sim = createSimulation(cfg, {
+            onResourcesChanged: () => (calls += 1),
+        });
+        sim.setBeds(5);
+        sim.setDoctors(2);
+        sim.setNurses(3);
+        expect(calls).toBe(3);
+    });
+});
+
 describe("subscribe", () => {
     it("delivers emitted events until unsubscribed", () => {
         const handlers: HandlerRegistry = {

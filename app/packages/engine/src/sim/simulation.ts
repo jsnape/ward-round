@@ -57,6 +57,8 @@ export interface SimulationDeps {
     initialState?: PortableState;
     /** Skip the `GameStarted` emission (used when resuming a saved game). */
     suppressGameStarted?: boolean;
+    /** Called after a live capacity change (e.g. to run an admit sweep). */
+    onResourcesChanged?: (ctx: SimContext) => void;
 }
 
 /** The public simulation surface consumed by hosts, scoring, and the contract. */
@@ -74,9 +76,19 @@ export interface Simulation {
     readonly state: WorldStateReadModel;
     /** Capture a portable snapshot for saving. */
     snapshot(): PortableState;
+    /** Live capacity controls — the player reallocating resources. */
+    setBeds(capacity: number): void;
+    setDoctors(headcount: number): void;
+    setNurses(headcount: number): void;
 }
 
 const DEFAULT_MAX_ITERATIONS = 1_000_000;
+
+function assertCount(n: number): void {
+    if (!Number.isInteger(n) || n < 0) {
+        throw new RangeError(`capacity must be a non-negative integer: ${n}`);
+    }
+}
 
 class SimulationImpl implements Simulation {
     private readonly clock = new SimClock();
@@ -90,6 +102,9 @@ class SimulationImpl implements Simulation {
     private readonly bootstrap: ((ctx: SimContext) => void) | undefined;
     private readonly maxIterations: number;
     private readonly suppressGameStarted: boolean;
+    private readonly onResourcesChanged:
+        | ((ctx: SimContext) => void)
+        | undefined;
     private started = false;
 
     constructor(
@@ -109,6 +124,7 @@ class SimulationImpl implements Simulation {
         this.bootstrap = deps.bootstrap;
         this.maxIterations = deps.maxIterations ?? DEFAULT_MAX_ITERATIONS;
         this.suppressGameStarted = deps.suppressGameStarted ?? false;
+        this.onResourcesChanged = deps.onResourcesChanged;
     }
 
     get simTime(): number {
@@ -121,6 +137,38 @@ class SimulationImpl implements Simulation {
 
     snapshot(): PortableState {
         return toPortable(this.world);
+    }
+
+    setBeds(capacity: number): void {
+        assertCount(capacity);
+        const beds = this.world.resources.beds;
+        // The manager can add or remove beds, but cannot evict occupied ones.
+        beds.capacity = Math.max(capacity, beds.occupied);
+        this.onResourcesChanged?.(this.makeContext());
+    }
+
+    setDoctors(headcount: number): void {
+        assertCount(headcount);
+        this.world.resources.doctors.headcount = headcount;
+        this.emitter.emit({
+            kind: "StaffChanged",
+            simTime: this.clock.simTime,
+            role: "doctor",
+            count: headcount,
+        });
+        this.onResourcesChanged?.(this.makeContext());
+    }
+
+    setNurses(headcount: number): void {
+        assertCount(headcount);
+        this.world.resources.nurses.headcount = headcount;
+        this.emitter.emit({
+            kind: "StaffChanged",
+            simTime: this.clock.simTime,
+            role: "nurse",
+            count: headcount,
+        });
+        this.onResourcesChanged?.(this.makeContext());
     }
 
     subscribe(listener: DomainEventListener): () => void {

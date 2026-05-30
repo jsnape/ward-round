@@ -46,6 +46,7 @@ export function createWardSimulation(
     return createSimulation(config, {
         handlers: wardHandlers,
         bootstrap: wardBootstrap,
+        onResourcesChanged: admitWaiting,
     });
 }
 
@@ -99,5 +100,6 @@ export function createWardSimulationFromSnapshot(
         bootstrap: wardRestoreBootstrap,
         initialState: snapshot,
         suppressGameStarted: true,
+        onResourcesChanged: admitWaiting,
     });
 }
