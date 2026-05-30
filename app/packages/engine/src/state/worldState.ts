@@ -7,12 +7,12 @@
  */
 import type { EngineConfig } from "../config/types.js";
 import {
-    type DurationClass,
     type OutcomeTier,
     type Patient,
     type Urgency,
     PatientState,
 } from "./patient.js";
+import type { ProcedureId } from "../config/procedures.js";
 import {
     type ResourceState,
     createResourceState,
@@ -49,7 +49,11 @@ export interface PatientView {
     id: string;
     state: PatientState;
     urgency: Urgency;
-    durationClass: DurationClass;
+    procedureId: ProcedureId;
+    registeredAt: number;
+    admittedAt?: number;
+    treatmentStartedAt?: number;
+    expectedDischargeAt?: number;
     outcome?: OutcomeTier;
 }
 
@@ -60,6 +64,7 @@ export interface WorldStateReadModel {
     doctors: number;
     nurses: number;
     waitingListLength: number;
+    inTreatmentCount: number;
     patients: readonly PatientView[];
     counters: WorldCounters;
 }
@@ -113,11 +118,13 @@ function toView(patient: Patient): PatientView {
         id: patient.id,
         state: patient.state,
         urgency: patient.urgency,
-        durationClass: patient.durationClass,
+        procedureId: patient.procedureId,
+        registeredAt: patient.registeredAt,
     };
-    if (patient.outcome !== undefined) {
-        view.outcome = patient.outcome;
-    }
+    if (patient.admittedAt !== undefined) view.admittedAt = patient.admittedAt;
+    if (patient.treatmentStartedAt !== undefined) view.treatmentStartedAt = patient.treatmentStartedAt;
+    if (patient.expectedDischargeAt !== undefined) view.expectedDischargeAt = patient.expectedDischargeAt;
+    if (patient.outcome !== undefined) view.outcome = patient.outcome;
     return view;
 }
 
@@ -125,9 +132,12 @@ function toView(patient: Patient): PatientView {
 export function projectReadModel(world: WorldState): WorldStateReadModel {
     const patients: PatientView[] = [];
     let waitingListLength = 0;
+    let inTreatmentCount = 0;
     for (const patient of world.patients.values()) {
         if (patient.state === PatientState.WaitingList) {
             waitingListLength += 1;
+        } else if (patient.state === PatientState.InTreatment) {
+            inTreatmentCount += 1;
         }
         patients.push(toView(patient));
     }
@@ -141,6 +151,7 @@ export function projectReadModel(world: WorldState): WorldStateReadModel {
         doctors: world.resources.doctors.headcount,
         nurses: world.resources.nurses.headcount,
         waitingListLength,
+        inTreatmentCount,
         patients,
         counters: { ...world.counters },
     };

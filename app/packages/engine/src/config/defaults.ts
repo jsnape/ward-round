@@ -8,27 +8,21 @@ export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
     seed: 1,
-    resources: { beds: 10, doctors: 3, nurses: 5 },
-    staffing: { minDoctors: 1, minNurses: 1, softBonusPerExtra: 0.1 },
-    baseDurationMs: {
-        short: 1 * MS_PER_DAY,
-        medium: 3 * MS_PER_DAY,
-        long: 7 * MS_PER_DAY,
-    },
+    resources: { beds: 8, doctors: 3, nurses: 6 },
+    ward: { acuity: 0.5 }, // 1 nurse per 2 beds; general medicine standard
     recovery: {
         complicationMs: 2 * MS_PER_DAY,
         poorMs: 5 * MS_PER_DAY,
     },
     outcomeWeights: { good: 0.7, complication: 0.2, poor: 0.1 },
     arrivals: {
-        meanInterArrivalMs: 1 * MS_PER_DAY,
+        meanInterArrivalMs: 0.8 * MS_PER_DAY, // 25% higher pressure than Stage 1
         urgencyWeights: { routine: 0.6, urgent: 0.3, emergency: 0.1 },
-        durationClassWeights: { short: 0.5, medium: 0.35, long: 0.15 },
     },
     bedManager: {
         roundIntervalMs: MS_PER_DAY,
         firstRoundAt: 8 * 60 * 60 * 1000, // 08:00 on day 0
-        maxWaitMs: 2 * MS_PER_DAY,
-        forecastHorizonMs: 1 * MS_PER_DAY,
+        maxWaitMs: 3 * MS_PER_DAY,       // more tension before cancellation
+        forecastHorizonMs: 0.5 * MS_PER_DAY, // more pessimistic → more cancellations
     },
 };

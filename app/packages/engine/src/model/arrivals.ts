@@ -5,12 +5,7 @@
  */
 import { type Rng, weightedPick } from "../rng/rng.js";
 import type { ArrivalConfig } from "../config/types.js";
-import {
-    type DurationClass,
-    type Urgency,
-    DURATION_CLASSES,
-    URGENCIES,
-} from "../state/patient.js";
+import { type Urgency, URGENCIES } from "../state/patient.js";
 
 /**
  * Samples the next inter-arrival gap (integer ms, >= 1) from an exponential
@@ -29,10 +24,4 @@ export function nextInterArrival(meanMs: number, rng: Rng): number {
 export function drawUrgency(cfg: ArrivalConfig, rng: Rng): Urgency {
     const w = URGENCIES.map((u) => cfg.urgencyWeights[u]);
     return URGENCIES[weightedPick(w, rng)]!;
-}
-
-/** Draws an arriving patient's treatment duration class from the weights. */
-export function drawDurationClass(cfg: ArrivalConfig, rng: Rng): DurationClass {
-    const w = DURATION_CLASSES.map((d) => cfg.durationClassWeights[d]);
-    return DURATION_CLASSES[weightedPick(w, rng)]!;
 }

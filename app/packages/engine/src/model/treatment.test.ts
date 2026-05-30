@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Rng } from "../rng/rng.js";
-import type { DurationConfig, StaffingConfig } from "../config/types.js";
 import {
-    isStaffed,
+    procedureOutcomeWeights,
     recoveryTime,
     rollOutcome,
-    throughputMultiplier,
     treatmentDuration,
 } from "./treatment.js";
+import { MS_PER_DAY } from "../config/defaults.js";
 
 class ScriptedRng implements Rng {
     private i = 0;
@@ -29,56 +28,27 @@ class ScriptedRng implements Rng {
     }
 }
 
-const staffing: StaffingConfig = {
-    minDoctors: 1,
-    minNurses: 1,
-    softBonusPerExtra: 0.1,
-};
-const base: DurationConfig = { short: 100, medium: 300, long: 700 };
-
-describe("throughputMultiplier", () => {
-    it("is 0 below the doctor floor", () => {
-        expect(throughputMultiplier(0, 5, staffing)).toBe(0);
-    });
-
-    it("is 0 below the nurse floor", () => {
-        expect(throughputMultiplier(2, 0, staffing)).toBe(0);
-    });
-
-    it("is exactly 1 at the floor (no extra staff)", () => {
-        expect(throughputMultiplier(1, 1, staffing)).toBe(1);
-    });
-
-    it("adds a soft bonus per staff member above the floor", () => {
-        // extra = (3-1) + (5-1) = 6 ; 1 + 0.1*6 = 1.6
-        expect(throughputMultiplier(3, 5, staffing)).toBeCloseTo(1.6, 10);
-    });
-});
-
-describe("isStaffed", () => {
-    it("is true at or above the floor", () => {
-        expect(isStaffed(1, 1, staffing)).toBe(true);
-    });
-
-    it("is false below the floor", () => {
-        expect(isStaffed(0, 1, staffing)).toBe(false);
-    });
-});
-
 describe("treatmentDuration", () => {
-    it("returns the base duration at the floor (multiplier 1)", () => {
-        expect(treatmentDuration("short", 1, 1, staffing, base)).toBe(100);
+    it("returns the procedure's baseDurationMs from the catalog", () => {
+        expect(treatmentDuration("appendectomy")).toBe(1 * MS_PER_DAY);
+        expect(treatmentDuration("cholecystectomy")).toBe(2 * MS_PER_DAY);
+        expect(treatmentDuration("hip_replacement")).toBe(7 * MS_PER_DAY);
+    });
+});
+
+describe("procedureOutcomeWeights", () => {
+    const base = { good: 0.7, complication: 0.2, poor: 0.1 };
+
+    it("improves good rate and reduces complication for a minor procedure", () => {
+        const result = procedureOutcomeWeights("colonoscopy", base);
+        expect(result.good).toBeCloseTo(0.75);
+        expect(result.complication).toBeCloseTo(0.15);
+        expect(result.poor).toBeCloseTo(0.1);
     });
 
-    it("shortens duration as throughput rises", () => {
-        // 100 / 1.6 = 62.5 -> 63
-        expect(treatmentDuration("short", 3, 5, staffing, base)).toBe(63);
-    });
-
-    it("throws when understaffed", () => {
-        expect(() => treatmentDuration("short", 0, 1, staffing, base)).toThrow(
-            RangeError,
-        );
+    it("returns base weights unchanged for a major procedure", () => {
+        const result = procedureOutcomeWeights("hip_replacement", base);
+        expect(result).toBe(base);
     });
 });
 

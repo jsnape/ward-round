@@ -14,7 +14,7 @@ describe("createWorldState", () => {
         const world = createWorldState(DEFAULT_ENGINE_CONFIG);
         expect(world.patients.size).toBe(0);
         expect(world.simTime).toBe(0);
-        expect(world.resources.beds).toEqual({ capacity: 10, occupied: 0 });
+        expect(world.resources.beds).toEqual({ capacity: 8, occupied: 0 });
         expect(world.counters).toEqual({
             registered: 0,
             admitted: 0,
@@ -32,13 +32,13 @@ describe("projectReadModel", () => {
         const waiting = createPatient({
             id: "p-1",
             urgency: "routine",
-            durationClass: "short",
+            procedureId: "appendectomy",
             registeredAt: 0,
         });
         const discharged = createPatient({
             id: "p-2",
             urgency: "urgent",
-            durationClass: "long",
+            procedureId: "hip_replacement",
             registeredAt: 0,
         });
         discharged.state = PatientState.Discharged;
@@ -52,11 +52,27 @@ describe("projectReadModel", () => {
     it("projects beds, staffing, queue length, and counters", () => {
         const view = projectReadModel(seeded());
         expect(view.simTime).toBe(500);
-        expect(view.beds).toEqual({ capacity: 10, occupied: 3, free: 7 });
+        expect(view.beds).toEqual({ capacity: 8, occupied: 3, free: 5 });
         expect(view.doctors).toBe(3);
-        expect(view.nurses).toBe(5);
+        expect(view.nurses).toBe(6);
         expect(view.waitingListLength).toBe(1);
+        expect(view.inTreatmentCount).toBe(0); // seeded has no InTreatment patients
         expect(view.counters.discharged).toBe(1);
+    });
+
+    it("counts in-treatment patients correctly", () => {
+        const world = createWorldState(DEFAULT_ENGINE_CONFIG);
+        const p1 = createPatient({ id: "t1", urgency: "urgent", procedureId: "appendectomy", registeredAt: 0 });
+        const p2 = createPatient({ id: "t2", urgency: "urgent", procedureId: "appendectomy", registeredAt: 0 });
+        const p3 = createPatient({ id: "w1", urgency: "routine", procedureId: "colonoscopy", registeredAt: 0 });
+        p1.state = PatientState.InTreatment;
+        p2.state = PatientState.InTreatment;
+        world.patients.set(p1.id, p1);
+        world.patients.set(p2.id, p2);
+        world.patients.set(p3.id, p3);
+        const view = projectReadModel(world);
+        expect(view.inTreatmentCount).toBe(2);
+        expect(view.waitingListLength).toBe(1);
     });
 
     it("includes outcome only when present", () => {
@@ -65,6 +81,40 @@ describe("projectReadModel", () => {
         const p2 = view.patients.find((p) => p.id === "p-2");
         expect(p1?.outcome).toBeUndefined();
         expect(p2?.outcome).toBe("good");
+    });
+
+    it("forwards timestamp fields when set, leaves absent when not", () => {
+        const world = createWorldState(DEFAULT_ENGINE_CONFIG);
+        const p = createPatient({
+            id: "p-tx",
+            urgency: "urgent",
+            procedureId: "appendectomy",
+            registeredAt: 100,
+        });
+        p.admittedAt = 200;
+        p.treatmentStartedAt = 300;
+        p.expectedDischargeAt = 1000;
+        world.patients.set(p.id, p);
+
+        const view = projectReadModel(world);
+        const pv = view.patients.find((x) => x.id === "p-tx");
+        expect(pv?.registeredAt).toBe(100);
+        expect(pv?.admittedAt).toBe(200);
+        expect(pv?.treatmentStartedAt).toBe(300);
+        expect(pv?.expectedDischargeAt).toBe(1000);
+
+        // Patient without timestamps
+        const plain = createPatient({
+            id: "p-plain",
+            urgency: "routine",
+            procedureId: "colonoscopy",
+            registeredAt: 0,
+        });
+        world.patients.set(plain.id, plain);
+        const pv2 = projectReadModel(world).patients.find((x) => x.id === "p-plain");
+        expect(pv2?.admittedAt).toBeUndefined();
+        expect(pv2?.treatmentStartedAt).toBeUndefined();
+        expect(pv2?.expectedDischargeAt).toBeUndefined();
     });
 
     it("returns a detached snapshot (mutating it does not affect the world)", () => {
@@ -86,7 +136,7 @@ describe("toPortable / fromPortable", () => {
         const p = createPatient({
             id: "p-1",
             urgency: "urgent",
-            durationClass: "long",
+            procedureId: "hip_replacement",
             registeredAt: 0,
         });
         p.state = PatientState.InTreatment;

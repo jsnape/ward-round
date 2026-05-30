@@ -9,21 +9,32 @@
 import {
     type OutcomeTier,
     type WorldStateReadModel,
+    MS_PER_DAY,
     PatientState,
 } from "@ward-round/engine";
 
 export interface ScoringConfig {
-    /** Starting budget (funds available to run the ward). */
+    /** Starting budget (cash available to run the ward). */
     budget: number;
-    /** Amount drawn from budget per treated (discharged) patient. */
+    /** Income received per treated (discharged) patient. */
     paymentPerDischarge: number;
     /** Score contribution per outcome tier. */
     outcomeScore: Record<OutcomeTier, number>;
+    /** Daily salary cost per doctor. */
+    dailyDoctorCost: number;
+    /** Daily salary cost per nurse. */
+    dailyNurseCost: number;
+    /** Daily running cost per open bed. */
+    dailyBedCost: number;
 }
 
 export interface Score {
     patientsTreated: number;
+    /** Running staff + bed cost accrued so far. */
+    staffCostToDate: number;
+    /** Alias for staffCostToDate — what has been paid out. */
     spent: number;
+    /** budget + discharge income − staff costs. */
     remaining: number;
     outcomeScore: number;
     /** Combined objective: throughput + outcome quality. */
@@ -31,9 +42,12 @@ export interface Score {
 }
 
 export const DEFAULT_SCORING_CONFIG: ScoringConfig = {
-    budget: 1_000_000,
-    paymentPerDischarge: 1000,
+    budget: 60_000,
+    paymentPerDischarge: 2_500,
     outcomeScore: { good: 2, complication: 0, poor: -1 },
+    dailyDoctorCost: 500,
+    dailyNurseCost: 200,
+    dailyBedCost: 50,
 };
 
 /** Computes the score from a world read-model. Pure; no engine instance needed. */
@@ -52,11 +66,21 @@ export function scoreState(
             outcomeScore += config.outcomeScore[patient.outcome];
         }
     }
-    const spent = patientsTreated * config.paymentPerDischarge;
+    const simDays = state.simTime / MS_PER_DAY;
+    const staffCostToDate = Math.round(
+        simDays *
+            (state.doctors * config.dailyDoctorCost +
+                state.nurses * config.dailyNurseCost +
+                state.beds.capacity * config.dailyBedCost),
+    );
+    const dischargeIncome = patientsTreated * config.paymentPerDischarge;
+    const spent = staffCostToDate;
+    const remaining = config.budget + dischargeIncome - staffCostToDate;
     return {
         patientsTreated,
+        staffCostToDate,
         spent,
-        remaining: config.budget - spent,
+        remaining,
         outcomeScore,
         totalScore: patientsTreated + outcomeScore,
     };

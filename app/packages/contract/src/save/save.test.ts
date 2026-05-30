@@ -64,7 +64,7 @@ describe("replayLog", () => {
             ev("PatientRegistered", {
                 patientId: "p-1",
                 urgency: "routine",
-                durationClass: "short",
+                procedureId: "appendectomy",
             }),
             ev("PatientAdmitted", { patientId: "p-1" }),
             ev("PatientDischarged", {
@@ -86,6 +86,7 @@ describe("replayLog", () => {
                 remaining: 980,
                 patientsTreated: 2,
                 outcomeScore: 1,
+                staffCostToDate: 20,
             }),
         ];
         expect(replayLog(log)).toEqual({
@@ -94,7 +95,7 @@ describe("replayLog", () => {
             discharged: 2,
             cancelled: 1,
             outcomes: { good: 1, complication: 0, poor: 1 },
-            budget: { spent: 20, remaining: 980, outcomeScore: 1 },
+            budget: { spent: 20, remaining: 980, outcomeScore: 1, staffCostToDate: 20 },
         });
     });
 });

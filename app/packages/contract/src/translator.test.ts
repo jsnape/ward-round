@@ -14,6 +14,9 @@ const config: TranslatorConfig = {
     budget: 1000,
     paymentPerDischarge: 10,
     outcomeScore: { good: 2, complication: 0, poor: -1 },
+    dailyDoctorCost: 500,
+    dailyNurseCost: 200,
+    dailyBedCost: 50,
 };
 
 function setup() {
@@ -65,7 +68,7 @@ describe("translator envelope + direct mappings", () => {
                 simTime: 1,
                 patientId: "p-1",
                 urgency: "routine",
-                durationClass: "short",
+                procedureId: "appendectomy",
             },
             {
                 kind: "PatientScheduled",
@@ -78,6 +81,7 @@ describe("translator envelope + direct mappings", () => {
                 kind: "TreatmentStarted",
                 simTime: 4,
                 patientId: "p-1",
+                procedureId: "appendectomy",
                 expectedDuration: 100,
             },
             {
@@ -117,11 +121,34 @@ describe("translator envelope + direct mappings", () => {
         });
         expect(events).toEqual([]);
     });
+
+    it("tracks headcount from StaffChanged and ignores it in the output stream", () => {
+        const { events, translator } = setup();
+        translator.handle({
+            kind: "StaffChanged",
+            simTime: 0,
+            role: "doctor",
+            count: 5,
+        });
+        translator.handle({
+            kind: "StaffChanged",
+            simTime: 0,
+            role: "nurse",
+            count: 8,
+        });
+        expect(events).toHaveLength(0); // StaffChanged is not a business event
+    });
 });
 
 describe("translator derived BudgetUpdated", () => {
-    it("accumulates spend, count, and outcome score per discharge", () => {
+    it("accumulates income, staff cost, and outcome score per discharge", () => {
         const { events, translator } = setup();
+        // Fire GameStarted so staff counts are set (0 doctors/nurses at simTime=0)
+        translator.handle({
+            kind: "GameStarted",
+            simTime: 0,
+            config: { seed: 1, beds: 0, doctors: 0, nurses: 0 },
+        });
         translator.handle({
             kind: "PatientDischarged",
             simTime: 10,
@@ -139,17 +166,21 @@ describe("translator derived BudgetUpdated", () => {
 
         const budgets = events.filter((e) => e.type === "BudgetUpdated");
         expect(budgets).toHaveLength(2);
+        // No staff/beds so staffCostToDate = 0; income = 1 × 10 = 10
         expect(budgets[0]?.payload).toEqual({
-            spent: 10,
-            remaining: 990,
+            spent: 0,
+            remaining: 1010, // 1000 + 10 income - 0 staff cost
             patientsTreated: 1,
             outcomeScore: 2,
+            staffCostToDate: 0,
         });
+        // Income = 2 × 10 = 20; staff cost still 0
         expect(budgets[1]?.payload).toEqual({
-            spent: 20,
-            remaining: 980,
+            spent: 0,
+            remaining: 1020, // 1000 + 20 income - 0 staff cost
             patientsTreated: 2,
             outcomeScore: 1, // 2 (good) + -1 (poor)
+            staffCostToDate: 0,
         });
     });
 });

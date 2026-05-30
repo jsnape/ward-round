@@ -41,6 +41,7 @@ class FakeSim implements Simulation {
             doctors: 1,
             nurses: 1,
             waitingListLength: 0,
+            inTreatmentCount: 0,
             patients: [],
             counters: {
                 registered: 0,
@@ -126,7 +127,7 @@ describe("SimDriver", () => {
     });
 
     it("offers the documented speed presets", () => {
-        expect(SPEED_PRESETS).toEqual([1, 2, 5]);
+        expect(SPEED_PRESETS).toEqual([1, 4, 20, 60]);
     });
 
     it("passes subscribe through to the simulation", () => {

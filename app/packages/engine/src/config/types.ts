@@ -2,13 +2,10 @@
  * The engine's configuration surface. Every tunable lives here so that balance
  * questions are data, not code. `seed` is the single origin of all stochasticity.
  */
-import type { DurationClass, OutcomeTier, Urgency } from "../state/patient.js";
+import type { OutcomeTier, Urgency } from "../state/patient.js";
 
 /** Base outcome-tier probabilities for a treatment (need not sum to 1). */
 export type OutcomeWeights = Record<OutcomeTier, number>;
-
-/** Base treatment durations (integer ms of simTime) per duration class. */
-export type DurationConfig = Record<DurationClass, number>;
 
 /**
  * Extra recovery time (ms) a patient occupies a bed *after* treatment completes,
@@ -20,14 +17,14 @@ export interface RecoveryConfig {
     poorMs: number;
 }
 
-/** Staffing floors and the soft throughput bonus per extra staff member. */
-export interface StaffingConfig {
-    /** Minimum doctors for treatment to progress at all (hard floor). */
-    minDoctors: number;
-    /** Minimum nurses for treatment to progress at all (hard floor). */
-    minNurses: number;
-    /** Fractional throughput gain per staff member above the floor. */
-    softBonusPerExtra: number;
+/**
+ * Ward clinical environment. Acuity is the minimum nurse-to-bed ratio: the
+ * number of nurses permanently consumed by ward-coverage duties per open bed.
+ * Beds cannot be added unless nurse headcount covers the new acuity load.
+ */
+export interface WardConfig {
+    /** Nurses required per bed (e.g. 0.5 for general medicine = 1 per 2 beds). */
+    acuity: number;
 }
 
 /** The arrival process and the attribute mix of arriving patients. */
@@ -35,7 +32,6 @@ export interface ArrivalConfig {
     /** Mean inter-arrival time (ms) for the exponential arrival process. */
     meanInterArrivalMs: number;
     urgencyWeights: Record<Urgency, number>;
-    durationClassWeights: Record<DurationClass, number>;
 }
 
 /** Initial resource capacities (plain integers; the engine never assumes more). */
@@ -66,8 +62,7 @@ export interface BedManagerConfig {
 export interface EngineConfig {
     seed: number;
     resources: ResourceConfig;
-    staffing: StaffingConfig;
-    baseDurationMs: DurationConfig;
+    ward: WardConfig;
     recovery: RecoveryConfig;
     outcomeWeights: OutcomeWeights;
     arrivals: ArrivalConfig;

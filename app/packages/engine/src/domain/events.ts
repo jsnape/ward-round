@@ -6,7 +6,8 @@
  *
  * Every event carries `simTime` so consumers never have to ask the clock.
  */
-import type { DurationClass, OutcomeTier, Urgency } from "../state/patient.js";
+import type { OutcomeTier, Urgency } from "../state/patient.js";
+import type { ProcedureId } from "../config/procedures.js";
 
 /** Engine-native summary emitted at game start (no scoring/mode concepts). */
 export interface EngineConfigSummary {
@@ -23,7 +24,7 @@ export type DomainEvent =
           simTime: number;
           patientId: string;
           urgency: Urgency;
-          durationClass: DurationClass;
+          procedureId: ProcedureId;
       }
     | {
           kind: "PatientScheduled";
@@ -48,6 +49,7 @@ export type DomainEvent =
           kind: "TreatmentStarted";
           simTime: number;
           patientId: string;
+          procedureId: ProcedureId;
           expectedDuration: number;
       }
     | {

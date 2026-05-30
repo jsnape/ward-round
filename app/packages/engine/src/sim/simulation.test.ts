@@ -14,7 +14,7 @@ describe("createSimulation defaults", () => {
     it("exposes initial time and read-model state", () => {
         const sim = createSimulation(cfg);
         expect(sim.simTime).toBe(0);
-        expect(sim.state.beds.capacity).toBe(10);
+        expect(sim.state.beds.capacity).toBe(8);
         expect(sim.state.waitingListLength).toBe(0);
     });
 
@@ -39,7 +39,7 @@ describe("start", () => {
         expect(starts).toHaveLength(1);
         const gs = starts[0];
         if (gs?.kind !== "GameStarted") throw new Error("expected GameStarted");
-        expect(gs.config).toEqual({ seed: 1, beds: 10, doctors: 3, nurses: 5 });
+        expect(gs.config).toEqual({ seed: 1, beds: 8, doctors: 3, nurses: 6 });
     });
 
     it("runs the bootstrap to seed initial events", () => {
@@ -51,7 +51,7 @@ describe("start", () => {
                     createPatient({
                         id,
                         urgency: "routine",
-                        durationClass: "short",
+                        procedureId: "appendectomy",
                         registeredAt: ctx.simTime,
                     }),
                 );

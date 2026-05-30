@@ -10,11 +10,11 @@ import type {
     WorldStateReadModel,
 } from "@ward-round/engine";
 
-/** Selectable speed multipliers offered to the UI. */
-export const SPEED_PRESETS = [1, 2, 5] as const;
+/** Selectable speed multipliers offered to the UI. Labels: Live | Daily | Weekly | Turbo. */
+export const SPEED_PRESETS = [1, 4, 20, 60] as const;
 
-/** Default mapping: 1 real second advances 1 simulated day (a watchable pace). */
-export const DEFAULT_SIM_MS_PER_WALL_MS = (24 * 60 * 60 * 1000) / 1000;
+/** Default mapping: 1 real minute = 1 sim day (Live pace — individual patients are watchable). */
+export const DEFAULT_SIM_MS_PER_WALL_MS = (24 * 60 * 60 * 1000) / 60_000;
 
 export interface SimDriverOptions {
     /** Simulated milliseconds advanced per real millisecond (before speed). */

@@ -8,6 +8,7 @@ import { DEFAULT_ENGINE_CONFIG, MS_PER_DAY } from "../config/defaults.js";
 import type { EngineConfig } from "../config/types.js";
 import type { DomainEvent } from "../domain/events.js";
 import { createWardSimulation } from "../handlers/ward.js";
+import { canAddBed } from "../model/staffing.js";
 
 const NEVER = 1_000_000 * MS_PER_DAY;
 
@@ -94,7 +95,7 @@ describe("scenario: capacity relieves the queue", () => {
     it("ample beds keep the queue bounded and discharge patients", () => {
         const { sim } = collect(
             cfg({
-                resources: { beds: 200, doctors: 20, nurses: 40 },
+                resources: { beds: 200, doctors: 20, nurses: 150 },
                 arrivals: { meanInterArrivalMs: MS_PER_DAY / 10 },
                 bedManager: noCancellations,
             }),
@@ -164,7 +165,7 @@ describe("scenario: outcome distribution", () => {
         () => {
             const config = cfg({
                 seed: 99,
-                resources: { beds: 200, doctors: 50, nurses: 80 },
+                resources: { beds: 200, doctors: 50, nurses: 200 },
                 arrivals: { meanInterArrivalMs: MS_PER_DAY / 50 },
                 bedManager: noCancellations,
             });
@@ -189,4 +190,41 @@ describe("scenario: outcome distribution", () => {
             expect(Math.abs(tally.poor / total - 0.1)).toBeLessThan(tol);
         },
     );
+});
+
+describe("scenario: §3 challenge rebalancing", () => {
+    it("default config creates queue pressure within 20 sim-days", () => {
+        const { sim } = collect(DEFAULT_ENGINE_CONFIG, 20 * MS_PER_DAY);
+        expect(sim.state.counters.discharged).toBeGreaterThan(0);
+        expect(sim.state.waitingListLength).toBeGreaterThan(0);
+    });
+
+    it("adding doctors measurably reduces the waiting list vs baseline", () => {
+        const shared = {
+            seed: 42,
+            resources: { beds: 5, nurses: 10 },
+            arrivals: { meanInterArrivalMs: MS_PER_DAY / 3 },
+            bedManager: noCancellations,
+        };
+        const baseline = collect(
+            cfg({ ...shared, resources: { ...shared.resources, doctors: 1 } }),
+            30 * MS_PER_DAY,
+        ).sim;
+        const extra = collect(
+            cfg({ ...shared, resources: { ...shared.resources, doctors: 4 } }),
+            30 * MS_PER_DAY,
+        ).sim;
+        expect(extra.state.waitingListLength).toBeLessThan(
+            baseline.state.waitingListLength,
+        );
+    });
+
+    it("canAddBed returns false when nurses are at the acuity floor", () => {
+        const { beds, nurses } = DEFAULT_ENGINE_CONFIG.resources;
+        const { acuity } = DEFAULT_ENGINE_CONFIG.ward;
+        // Default 6 nurses can cover a 9th bed (wardNursesNeeded(9, 0.5) = 5 ≤ 6)
+        expect(canAddBed(beds, nurses, acuity)).toBe(true);
+        // At the floor (4 nurses for 8 beds), cannot open a 9th
+        expect(canAddBed(beds, 4, acuity)).toBe(false);
+    });
 });

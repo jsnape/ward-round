@@ -6,11 +6,8 @@
  */
 import type { EventHandler } from "../sim/simulation.js";
 import { createPatient } from "../state/patient.js";
-import {
-    drawDurationClass,
-    drawUrgency,
-    nextInterArrival,
-} from "../model/arrivals.js";
+import { drawUrgency, nextInterArrival } from "../model/arrivals.js";
+import { drawProcedure } from "../config/procedures.js";
 import { admitWaiting } from "./admission.js";
 
 export const handleArrival: EventHandler = (_event, ctx) => {
@@ -22,17 +19,14 @@ export const handleArrival: EventHandler = (_event, ctx) => {
     ctx.schedule({ kind: "arrival", time: ctx.simTime + gap });
 
     const urgency = drawUrgency(ctx.config.arrivals, ctx.rng.arrivals);
-    const durationClass = drawDurationClass(
-        ctx.config.arrivals,
-        ctx.rng.arrivals,
-    );
+    const procedureId = drawProcedure(urgency, ctx.rng.arrivals);
     const id = ctx.ids.next();
     ctx.world.patients.set(
         id,
         createPatient({
             id,
             urgency,
-            durationClass,
+            procedureId,
             registeredAt: ctx.simTime,
         }),
     );
@@ -42,7 +36,7 @@ export const handleArrival: EventHandler = (_event, ctx) => {
         simTime: ctx.simTime,
         patientId: id,
         urgency,
-        durationClass,
+        procedureId,
     });
 
     admitWaiting(ctx);

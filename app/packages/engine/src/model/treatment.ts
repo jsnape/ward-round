@@ -1,66 +1,38 @@
 /**
- * Pure treatment math: the staffing → throughput coupling, treatment duration,
- * and the three-tier outcome roll. No scheduling, no emission, no state — just
- * `(inputs) => result`, which is what makes 100% branch coverage cheap.
+ * Pure treatment math: treatment duration and the three-tier outcome roll.
+ * No scheduling, no emission, no state — just `(inputs) => result`.
+ *
+ * Treatment gating (whether a new treatment can start) lives in
+ * `model/staffing.ts`. Duration is a direct catalog lookup; the throughput
+ * multiplier from Stage 1 has been removed.
  */
 import { type Rng, weightedPick } from "../rng/rng.js";
-import type {
-    DurationConfig,
-    OutcomeWeights,
-    RecoveryConfig,
-    StaffingConfig,
-} from "../config/types.js";
-import {
-    type DurationClass,
-    type OutcomeTier,
-    OUTCOME_TIERS,
-} from "../state/patient.js";
+import type { OutcomeWeights, RecoveryConfig } from "../config/types.js";
+import { type OutcomeTier, OUTCOME_TIERS } from "../state/patient.js";
+import { type ProcedureId, getProcedure } from "../config/procedures.js";
 
-/**
- * Throughput as a function of staffing:
- * - below either floor → 0 (hard floor: treatment stalls);
- * - at or above the floor → 1 + softBonus × (staff above the floor).
- */
-export function throughputMultiplier(
-    doctors: number,
-    nurses: number,
-    cfg: StaffingConfig,
-): number {
-    if (doctors < cfg.minDoctors || nurses < cfg.minNurses) {
-        return 0;
-    }
-    const extra = doctors - cfg.minDoctors + (nurses - cfg.minNurses);
-    return 1 + cfg.softBonusPerExtra * extra;
-}
-
-/** Whether staffing is sufficient to start/progress treatment. */
-export function isStaffed(
-    doctors: number,
-    nurses: number,
-    cfg: StaffingConfig,
-): boolean {
-    return throughputMultiplier(doctors, nurses, cfg) > 0;
+/** Expected treatment duration (ms) for the given procedure. */
+export function treatmentDuration(procedureId: ProcedureId): number {
+    return getProcedure(procedureId).baseDurationMs;
 }
 
 /**
- * Expected treatment duration (integer ms): the base duration for the class
- * divided by the throughput multiplier, floored at 1ms. Throws if understaffed
- * (callers must check {@link isStaffed} before starting treatment).
+ * Adjusts outcome weights based on procedure complexity. Minor procedures
+ * improve the good rate by 0.05 at the expense of complications.
  */
-export function treatmentDuration(
-    durationClass: DurationClass,
-    doctors: number,
-    nurses: number,
-    staffing: StaffingConfig,
-    base: DurationConfig,
-): number {
-    const mult = throughputMultiplier(doctors, nurses, staffing);
-    if (mult <= 0) {
-        throw new RangeError(
-            "cannot compute treatment duration while understaffed",
-        );
+export function procedureOutcomeWeights(
+    procedureId: ProcedureId,
+    base: OutcomeWeights,
+): OutcomeWeights {
+    const proc = getProcedure(procedureId);
+    if (proc.complexity === "major") {
+        return base;
     }
-    return Math.max(1, Math.round(base[durationClass] / mult));
+    return {
+        good: base.good + 0.05,
+        complication: base.complication - 0.05,
+        poor: base.poor,
+    };
 }
 
 /** Rolls a stochastic outcome tier from the configured weights. */

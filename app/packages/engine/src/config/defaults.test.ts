@@ -1,14 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ENGINE_CONFIG, MS_PER_DAY } from "./defaults.js";
+import { DEFAULT_ENGINE_CONFIG } from "./defaults.js";
 import { OUTCOME_TIERS } from "../state/patient.js";
 
 describe("DEFAULT_ENGINE_CONFIG", () => {
-    it("uses the agreed staffing floors and soft bonus", () => {
-        expect(DEFAULT_ENGINE_CONFIG.staffing).toEqual({
-            minDoctors: 1,
-            minNurses: 1,
-            softBonusPerExtra: 0.1,
-        });
+    it("uses the agreed ward acuity (0.5 = 1 nurse per 2 beds)", () => {
+        expect(DEFAULT_ENGINE_CONFIG.ward).toEqual({ acuity: 0.5 });
     });
 
     it("uses the agreed outcome weights (0.70 / 0.20 / 0.10)", () => {
@@ -16,14 +12,6 @@ describe("DEFAULT_ENGINE_CONFIG", () => {
             good: 0.7,
             complication: 0.2,
             poor: 0.1,
-        });
-    });
-
-    it("expresses duration classes as 1/3/7 days in ms", () => {
-        expect(DEFAULT_ENGINE_CONFIG.baseDurationMs).toEqual({
-            short: MS_PER_DAY,
-            medium: 3 * MS_PER_DAY,
-            long: 7 * MS_PER_DAY,
         });
     });
 

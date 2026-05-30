@@ -5,6 +5,7 @@
  * A01, A11, A03) are conceptual labels for the transitions, never a runtime data
  * format — see the spec.
  */
+import type { ProcedureId } from "../config/procedures.js";
 
 /** The patient lifecycle states. `Discharged` and `Cancelled` are terminal. */
 export enum PatientState {
@@ -21,14 +22,6 @@ export enum PatientState {
 export type Urgency = "routine" | "urgent" | "emergency";
 export const URGENCIES: readonly Urgency[] = ["routine", "urgent", "emergency"];
 
-/** How long a treatment is expected to take, by class. */
-export type DurationClass = "short" | "medium" | "long";
-export const DURATION_CLASSES: readonly DurationClass[] = [
-    "short",
-    "medium",
-    "long",
-];
-
 /** The stochastic result of a completed treatment, best to worst. */
 export type OutcomeTier = "good" | "complication" | "poor";
 export const OUTCOME_TIERS: readonly OutcomeTier[] = [
@@ -42,7 +35,7 @@ export interface Patient {
     readonly id: string;
     state: PatientState;
     readonly urgency: Urgency;
-    readonly durationClass: DurationClass;
+    readonly procedureId: ProcedureId;
     readonly registeredAt: number;
     scheduledAt?: number;
     admittedAt?: number;
@@ -57,14 +50,16 @@ export interface Patient {
 export function createPatient(args: {
     id: string;
     urgency: Urgency;
-    durationClass: DurationClass;
+    procedureId: ProcedureId;
     registeredAt: number;
 }): Patient {
     return {
         id: args.id,
         state: PatientState.WaitingList,
         urgency: args.urgency,
-        durationClass: args.durationClass,
+        procedureId: args.procedureId,
         registeredAt: args.registeredAt,
     };
 }
+
+export type { ProcedureId } from "../config/procedures.js";

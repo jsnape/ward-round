@@ -8,7 +8,8 @@ import type { SimContext } from "../sim/simulation.js";
 import { type Patient, PatientState } from "../state/patient.js";
 import { transition } from "../model/transitions.js";
 import { freeBeds, hasFreeBed } from "../state/resources.js";
-import { isStaffed, treatmentDuration } from "../model/treatment.js";
+import { treatmentDuration } from "../model/treatment.js";
+import { canStartTreatment, freeStaff } from "../model/staffing.js";
 
 function admitOne(patient: Patient, ctx: SimContext): void {
     transition(patient, PatientState.Scheduled);
@@ -36,21 +37,21 @@ function admitOne(patient: Patient, ctx: SimContext): void {
         patientId: patient.id,
     });
 
-    const { headcount: doctors } = ctx.world.resources.doctors;
-    const { headcount: nurses } = ctx.world.resources.nurses;
-    if (!isStaffed(doctors, nurses, ctx.config.staffing)) {
+    const inTreatmentCount = [...ctx.world.patients.values()].filter(
+        (p) => p.state === PatientState.InTreatment,
+    ).length;
+    const { freeDoctors, freeNurses } = freeStaff(
+        ctx.world.resources,
+        inTreatmentCount,
+        ctx.config.ward.acuity,
+    );
+    if (!canStartTreatment(freeDoctors, freeNurses)) {
         return; // bed seized, treatment stalls until staffing allows
     }
 
     transition(patient, PatientState.InTreatment);
     patient.treatmentStartedAt = ctx.simTime;
-    const duration = treatmentDuration(
-        patient.durationClass,
-        doctors,
-        nurses,
-        ctx.config.staffing,
-        ctx.config.baseDurationMs,
-    );
+    const duration = treatmentDuration(patient.procedureId);
     // Optimistic estimate (assumes an on-time, complication-free recovery) — the
     // bed manager forecasts free beds from this.
     patient.expectedDischargeAt = ctx.simTime + duration;
@@ -58,6 +59,7 @@ function admitOne(patient: Patient, ctx: SimContext): void {
         kind: "TreatmentStarted",
         simTime: ctx.simTime,
         patientId: patient.id,
+        procedureId: patient.procedureId,
         expectedDuration: duration,
     });
     ctx.schedule({

@@ -24,10 +24,17 @@ enum Urgency {
     emergency,
 }
 
-enum DurationClass {
-    short,
-    medium,
-    long,
+enum ProcedureId {
+    appendectomy,
+    hernia_repair,
+    cataract_surgery,
+    colonoscopy,
+    cholecystectomy,
+    tonsillectomy,
+    knee_arthroscopy,
+    cardiac_stent,
+    hip_replacement,
+    lumbar_fusion,
 }
 
 enum CancelReason {
@@ -65,7 +72,7 @@ model StaffHiredPayload {
 model PatientRegisteredPayload {
     patientId: string;
     urgency: Urgency;
-    durationClass: DurationClass;
+    procedureId: ProcedureId;
 }
 
 model PatientScheduledPayload {
@@ -79,6 +86,7 @@ model PatientAdmittedPayload {
 
 model TreatmentStartedPayload {
     patientId: string;
+    procedureId: ProcedureId;
     expectedDuration: safeint;
 }
 
@@ -98,6 +106,7 @@ model BudgetUpdatedPayload {
     remaining: safeint;
     patientsTreated: int32;
     outcomeScore: float64;
+    staffCostToDate: safeint;
 }
 
 /** The common envelope shared by every business event. */
